@@ -6,7 +6,10 @@ export default {
   testEnvironment: "node",
 
   // which test to run
-  testMatch: ["<rootDir>/controllers/*.test.js"],
+  testMatch: ["<rootDir>/**/*.test.js"],
+
+  // exclude the /client folder
+  testPathIgnorePatterns: ["<rootDir>/client/"],
 
   // jest code coverage
   collectCoverage: true,
