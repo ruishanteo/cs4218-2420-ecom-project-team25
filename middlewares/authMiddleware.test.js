@@ -1,17 +1,28 @@
 import JWT from "jsonwebtoken";
+import mongoose from "mongoose";
+
 import userModel from "../models/userModel";
 import { isAdmin, requireSignIn } from "./authMiddleware";
 
-// to mock -> jwt, usermodel findbyid
 jest.mock("jsonwebtoken");
-jest.mock("../models/userModel");
+
+// mock mongoose model (fixes error of async operation not closing before test ends)
+jest.mock("../models/userModel", () => ({
+  __esModule: true,
+  default: {
+    findById: jest.fn(),
+  },
+}));
 
 describe("requireSignIn authMiddlware", () => {
   let mockReq;
   let mockRes;
   let mockNext;
+  let consoleLogSpy;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     mockReq = {
       headers: {
         authorization: "Bearer token",
@@ -19,10 +30,11 @@ describe("requireSignIn authMiddlware", () => {
     };
     mockRes = {}; // doesnt use res
     mockNext = jest.fn(); // mock the next fn to verify if it is called
+    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {}); // mock console.log to suppress output
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  afterAll(() => {
+    consoleLogSpy.mockRestore();
   });
 
   it("should set req.user and call next() if token is valid", async () => {
@@ -44,8 +56,6 @@ describe("requireSignIn authMiddlware", () => {
     JWT.verify.mockImplementationOnce(() => {
       throw mockError;
     });
-    // spy on console.log
-    const consoleLogSpy = jest.spyOn(console, "log");
 
     await requireSignIn(mockReq, mockRes, mockNext);
 
@@ -58,17 +68,21 @@ describe("isAdmin authMiddlware", () => {
   let mockReq;
   let mockRes;
   let mockNext;
+  let consoleLogSpy;
 
   beforeEach(() => {
+    jest.clearAllMocks(); // clear all mocks first
+
     mockRes = {
       status: jest.fn().mockReturnThis(),
       send: jest.fn(),
     };
     mockNext = jest.fn(); // mock the next fn to test if it is called
+    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {}); // mock console.log to suppress output
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  afterAll(() => {
+    consoleLogSpy.mockRestore();
   });
 
   // mock userModel.findById
@@ -105,7 +119,6 @@ describe("isAdmin authMiddlware", () => {
       role: 0,
       _id: mockUserId,
     };
-    const consoleLogSpy = jest.spyOn(console, "log");
     userModel.findById.mockResolvedValueOnce(mockUser);
 
     await isAdmin(mockReq, mockRes, mockNext);
@@ -127,7 +140,6 @@ describe("isAdmin authMiddlware", () => {
       },
     };
     userModel.findById.mockRejectedValueOnce("error");
-    const consoleLogSpy = jest.spyOn(console, "log");
 
     await isAdmin(mockReq, mockRes, mockNext);
 
