@@ -51,7 +51,6 @@ describe("requireSignIn authMiddlware", () => {
 
     expect(mockNext).not.toHaveBeenCalled();
     expect(consoleLogSpy).toHaveBeenCalledWith(mockError);
-    consoleLogSpy.mockRestore();
   });
 });
 
@@ -140,7 +139,5 @@ describe("isAdmin authMiddlware", () => {
       error: "error",
       message: "Error in admin middleware",
     });
-
-    consoleLogSpy.mockRestore();
   });
 });
