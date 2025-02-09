@@ -4,18 +4,8 @@ import orderModel from '../models/orderModel.js';
 
 import fs from 'fs';
 import slugify from 'slugify';
-import braintree from 'braintree';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-//payment gateway
-var gateway = new braintree.BraintreeGateway({
-  environment: braintree.Environment.Sandbox,
-  merchantId: process.env.BRAINTREE_MERCHANT_ID,
-  publicKey: process.env.BRAINTREE_PUBLIC_KEY,
-  privateKey: process.env.BRAINTREE_PRIVATE_KEY,
-});
+import { gateway } from '../helpers/gatewayHelper.js';
 
 export const createProductController = async (req, res) => {
   try {
@@ -62,7 +52,7 @@ export const createProductController = async (req, res) => {
     res.status(500).send({
       success: false,
       error,
-      message: 'Error in creating product',
+      message: 'Error while creating product',
     });
   }
 };
@@ -87,11 +77,12 @@ export const getProductController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: 'Erorr in getting products',
-      error: error.message,
+      message: 'Error while getting products',
+      error: error,
     });
   }
 };
+
 // get single product
 export const getSingleProductController = async (req, res) => {
   try {
@@ -108,7 +99,7 @@ export const getSingleProductController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: 'Eror while getitng single product',
+      message: 'Error while getitng single product',
       error,
     });
   }
@@ -126,7 +117,7 @@ export const productPhotoController = async (req, res) => {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: 'Erorr while getting photo',
+      message: 'Error while getting photo',
       error,
     });
   }
@@ -138,7 +129,7 @@ export const deleteProductController = async (req, res) => {
     await productModel.findByIdAndDelete(req.params.pid).select('-photo');
     res.status(200).send({
       success: true,
-      message: 'Product Deleted successfully',
+      message: 'Product Deleted Successfully',
     });
   } catch (error) {
     console.log(error);
@@ -150,7 +141,7 @@ export const deleteProductController = async (req, res) => {
   }
 };
 
-//upate producta
+//update product
 export const updateProductController = async (req, res) => {
   try {
     const { name, description, price, category, quantity, shipping } =
@@ -180,21 +171,24 @@ export const updateProductController = async (req, res) => {
       { new: true }
     );
     if (photo) {
+      products.photo = {};
       products.photo.data = fs.readFileSync(photo.path);
       products.photo.contentType = photo.type;
     }
-    await products.save();
+
+    const product = await products.save();
+
     res.status(201).send({
       success: true,
       message: 'Product Updated Successfully',
-      products,
+      products: product,
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
       error,
-      message: 'Error in Updte product',
+      message: 'Error while updating product',
     });
   }
 };
@@ -213,9 +207,9 @@ export const productFiltersController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      message: 'Error WHile Filtering Products',
+      message: 'Error while filtering products',
       error,
     });
   }
@@ -231,7 +225,7 @@ export const productCountController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       message: 'Error in product count',
       error,
       success: false,
@@ -256,9 +250,9 @@ export const productListController = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(400).send({
+    res.status(500).send({
       success: false,
-      message: 'error in per page ctrl',
+      message: 'Error in per page control',
       error,
     });
   }
@@ -268,7 +262,7 @@ export const productListController = async (req, res) => {
 export const searchProductController = async (req, res) => {
   try {
     const { keyword } = req.params;
-    const resutls = await productModel
+    const results = await productModel
       .find({
         $or: [
           { name: { $regex: keyword, $options: 'i' } },
@@ -276,7 +270,7 @@ export const searchProductController = async (req, res) => {
         ],
       })
       .select('-photo');
-    res.json(resutls);
+    res.json(results);
   } catch (error) {
     console.log(error);
     res.status(400).send({
@@ -288,7 +282,7 @@ export const searchProductController = async (req, res) => {
 };
 
 // similar products
-export const realtedProductController = async (req, res) => {
+export const relatedProductController = async (req, res) => {
   try {
     const { pid, cid } = req.params;
     const products = await productModel
@@ -307,13 +301,13 @@ export const realtedProductController = async (req, res) => {
     console.log(error);
     res.status(400).send({
       success: false,
-      message: 'error while geting related product',
+      message: 'Error while geting related product',
       error,
     });
   }
 };
 
-// get prdocyst by catgory
+// get product by catgory
 export const productCategoryController = async (req, res) => {
   try {
     const category = await categoryModel.findOne({ slug: req.params.slug });
@@ -328,7 +322,7 @@ export const productCategoryController = async (req, res) => {
     res.status(400).send({
       success: false,
       error,
-      message: 'Error While Getting products',
+      message: 'Error while getting products',
     });
   }
 };
