@@ -94,7 +94,7 @@ describe("isAdmin authMiddlware", () => {
     expect(mockNext).toHaveBeenCalled();
   });
 
-  it("should return 401 UnAuthorized Access if user is not admin", async () => {
+  it("should return a 401 error if user is not admin", async () => {
     const mockUserId = "user1";
     mockReq = {
       user: {
@@ -120,7 +120,7 @@ describe("isAdmin authMiddlware", () => {
     expect(consoleLogSpy).not.toHaveBeenCalled();
   });
 
-  it("should return 401 Error in admin middleware if error in finding user", async () => {
+  it("should return a 401 error if error in finding user", async () => {
     const mockUserId = "user1";
     mockReq = {
       user: {
