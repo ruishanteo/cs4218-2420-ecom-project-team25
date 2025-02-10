@@ -27,7 +27,11 @@ export default {
 
   // jest code coverage
   collectCoverage: true,
-  collectCoverageFrom: ["client/src/pages/Auth/**"],
+  collectCoverageFrom: [
+    "client/src/**/*.{js, jsx}",
+    "!client/src/_site/**",
+    "!client/src/_markbind/**",
+  ],
   coverageThreshold: {
     global: {
       lines: 100,
