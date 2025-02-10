@@ -27,8 +27,18 @@ jest.mock("react-hot-toast", () => ({
 
 jest.mock("../hooks/useCategory", () =>
   jest.fn(() => [
-    { slug: "electronics", name: "Electronics" },
-    { slug: "fashion", name: "Fashion" },
+    {
+      _id: "123451",
+      name: "Electronics",
+      slug: "electronics",
+      __v: 0,
+    },
+    {
+      _id: "123452",
+      name: "Fashion",
+      slug: "fashion",
+      __v: 0,
+    },
   ])
 );
 
