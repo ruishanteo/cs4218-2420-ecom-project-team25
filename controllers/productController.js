@@ -4,8 +4,20 @@ import orderModel from '../models/orderModel.js';
 
 import fs from 'fs';
 import slugify from 'slugify';
+import braintree from 'braintree';
+import dotenv from 'dotenv';
 
-import { gateway } from '../helpers/gatewayHelper.js';
+dotenv.config();
+
+//payment gateway
+// creates a gateway object to be used in other parts of the code
+// need to be exported here to ensure that we can mock it
+var gateway = new braintree.BraintreeGateway({
+  environment: braintree.Environment.Sandbox,
+  merchantId: process.env.BRAINTREE_MERCHANT_ID,
+  publicKey: process.env.BRAINTREE_PUBLIC_KEY,
+  privateKey: process.env.BRAINTREE_PRIVATE_KEY,
+});
 
 export const createProductController = async (req, res) => {
   try {
@@ -112,6 +124,12 @@ export const productPhotoController = async (req, res) => {
     if (product.photo.data) {
       res.set('Content-type', product.photo.contentType);
       return res.status(200).send(product.photo.data);
+    } else {
+      // might not be able to do this?
+      res.status(500).send({
+        success: false,
+        message: 'Photo not found',
+      });
     }
   } catch (error) {
     console.log(error);

@@ -1,6 +1,5 @@
 import fs from 'fs';
 import slugify from 'slugify';
-import { gateway } from '../helpers/gatewayHelper';
 import productModel from '../models/productModel';
 import categoryModel from '../models/categoryModel';
 import orderModel from '../models/orderModel';
@@ -20,6 +19,7 @@ import {
   braintreeTokenController,
   brainTreePaymentController,
 } from './productController';
+import braintree from 'braintree';
 
 const token = { token: 'token' };
 const txnSuccess = { success: true };
@@ -31,17 +31,24 @@ jest.mock('../models/orderModel');
 jest.mock('slugify', () => {
   return jest.fn().mockReturnValue('product');
 });
-
-jest.mock('../helpers/gatewayHelper', () => ({
-  gateway: {
-    clientToken: {
-      generate: jest.fn(),
-    },
-    transaction: {
-      sale: jest.fn(),
-    },
+jest.mock('braintree', () => ({
+  BraintreeGateway: jest.fn(() => {
+    return {
+      clientToken: {
+        generate: jest.fn(),
+      },
+      transaction: {
+        sale: jest.fn(),
+      },
+    };
+  }),
+  Environment: {
+    Sandbox: 'sandbox',
   },
 }));
+
+// get the gateway object
+const gateway = braintree.BraintreeGateway.mock.results[0].value;
 
 let response = {
   status: jest.fn().mockReturnThis(),
@@ -354,6 +361,12 @@ describe('productPhotoController', () => {
     },
   };
 
+  const missingDataQueryData = {
+    photo: {
+      contentType: 'image/png',
+    },
+  };
+
   // mock the query object
   const mockedProductQuery = {
     findById: jest.fn().mockReturnThis(),
@@ -374,6 +387,22 @@ describe('productPhotoController', () => {
     expect(response.send).toHaveBeenCalledWith(
       mockedProductQueryData.photo.data
     );
+  });
+
+  it('should error out when photo data is missing', async () => {
+    const mockedProductQuery = {
+      findById: jest.fn().mockReturnThis(),
+      select: jest.fn().mockResolvedValue(missingDataQueryData),
+    };
+
+    productModel.findById.mockReturnValue(mockedProductQuery);
+    await productPhotoController({ params: { pid: '123' } }, response);
+
+    expect(response.status).toHaveBeenCalledWith(500);
+    expect(response.send).toHaveBeenCalledWith({
+      message: 'Photo not found',
+      success: false,
+    });
   });
 
   it('should error out if an error is thrown', async () => {
@@ -668,6 +697,30 @@ describe('productFiltersController', () => {
   });
 
   it('should filter available products', async () => {
+    await productFiltersController(request, response);
+
+    // expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.send).toHaveBeenCalledWith({
+      success: true,
+      products: mockedProductQueryData,
+    });
+  });
+
+  it('should still filter if checked is missing', async () => {
+    request.body.checked = [];
+
+    await productFiltersController(request, response);
+
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.send).toHaveBeenCalledWith({
+      success: true,
+      products: mockedProductQueryData,
+    });
+  });
+
+  it('should still filter if radio is missing', async () => {
+    request.body.radio = [];
+
     await productFiltersController(request, response);
 
     expect(response.status).toHaveBeenCalledWith(200);
