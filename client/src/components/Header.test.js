@@ -7,7 +7,6 @@ import Header from "./Header";
 import toast from "react-hot-toast";
 import "@testing-library/jest-dom";
 
-// Mock the necessary hooks and context
 jest.mock("../context/auth", () => ({
   useAuth: jest.fn(),
 }));
@@ -17,7 +16,7 @@ jest.mock("../context/cart", () => ({
 }));
 
 jest.mock("../context/search", () => ({
-  useSearch: jest.fn(() => ["", jest.fn()]), // Mock useSearch to return an empty string and a mock function
+  useSearch: jest.fn(() => ["", jest.fn()]),
 }));
 
 jest.mock("react-hot-toast", () => ({
@@ -139,6 +138,35 @@ describe("Header Component", () => {
 
     expect(localStorage.removeItem).toHaveBeenCalledWith("auth");
     expect(toast.success).toHaveBeenCalledWith("Logout Successfully");
+  });
+
+  it("redirects to the correct dashboard based on user role", () => {
+    const userAdmin = { name: "Admin User", role: 1 };
+    const userRegular = { name: "Regular User", role: 0 };
+
+    // Test for admin role
+    useAuth.mockReturnValue([{ user: userAdmin }, jest.fn()]);
+    useCart.mockReturnValue([[], jest.fn()]);
+
+    render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Admin User")).toBeInTheDocument();
+
+    // Test for regular user
+    useAuth.mockReturnValue([{ user: userRegular }, jest.fn()]);
+    useCart.mockReturnValue([[], jest.fn()]);
+
+    render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Regular User")).toBeInTheDocument();
   });
 
   it("displays cart count correctly", () => {
