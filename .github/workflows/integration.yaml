@@ -22,18 +22,20 @@ jobs:
         with:
           node-version: "20"
 
-      # - name: Install server dependencies
-      #   run: npm ci
+      - name: Install server dependencies
+        run: |
+          npm ci
+          npm install --save-dev jest @babel/core @babel/preset-env
 
       - name: Install client dependencies
         working-directory: client
         run: npm ci
 
-      # - name: Run server tests
-      #   run: npm run test:backend
+      - name: Run server tests
+        run: npm run test:backend
 
       - name: Run frontend tests
         run: npm run test:frontend
         env:
           CI: true
-          # NODE_OPTIONS: --experimental-vm-modules
+          NODE_OPTIONS: --experimental-vm-modules
