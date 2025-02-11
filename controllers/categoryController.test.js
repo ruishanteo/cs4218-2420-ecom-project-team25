@@ -6,21 +6,32 @@ import {
   deleteCategoryCOntroller,
 } from "../controllers/categoryController.js";
 import categoryModel from "../models/categoryModel.js";
+import { expect, jest, test } from "@jest/globals";
 
-// Mocking categoryModel and slugify
-jest.mock("../models/categoryModel.js");
 jest.mock("slugify", () =>
   jest.fn((str) => str.toLowerCase().replace(/\s+/g, "-"))
 );
 
-// Mock Response object
+jest.mock("../models/categoryModel.js", () => {
+  const mockCategoryModel = {
+    findOne: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
+    find: jest.fn(),
+    findByIdAndDelete: jest.fn(),
+    prototype: {
+      save: jest.fn(),
+    },
+  };
+
+  return mockCategoryModel;
+});
+
 const mockRes = {
   status: jest.fn().mockReturnThis(),
   send: jest.fn().mockReturnThis(),
   json: jest.fn().mockReturnThis(),
 };
 
-// Mock Request objects
 const mockReq = {
   body: {},
   params: {},
@@ -31,17 +42,18 @@ const categoryData = { name: "Category1", slug: "category1" };
 
 describe("Category Controller", () => {
   afterEach(() => {
-    jest.clearAllMocks(); // Clear mock calls after each test
+    jest.clearAllMocks();
   });
 
   describe("createCategoryController", () => {
     it("should create a new category", async () => {
-      // Mock the request data
       mockReq.body = { name: "New Category" };
 
-      // Mock the database response
-      categoryModel.findOne.mockResolvedValue(null); // No existing category found
-      categoryModel.prototype.save.mockResolvedValue(categoryData); // Simulate a successful save
+      // No existing category found
+      jest.spyOn(categoryModel, "findOne").mockResolvedValue(null);
+      jest
+        .spyOn(categoryModel.prototype, "save")
+        .mockResolvedValue(categoryData);
 
       await createCategoryController(mockReq, mockRes);
 
@@ -54,11 +66,12 @@ describe("Category Controller", () => {
     });
 
     it("should return an error if the category already exists", async () => {
-      // Mock the request data
       mockReq.body = { name: "Existing Category" };
 
-      // Mock the database response
-      categoryModel.findOne.mockResolvedValue({ name: "Existing Category" }); // Simulating existing category
+      // Existing category found
+      jest
+        .spyOn(categoryModel, "findOne")
+        .mockResolvedValue({ name: "Existing Category" });
 
       await createCategoryController(mockReq, mockRes);
 
@@ -70,7 +83,7 @@ describe("Category Controller", () => {
     });
 
     it("should return an error if name is not provided", async () => {
-      mockReq.body = {}; // No name provided
+      mockReq.body = {};
 
       await createCategoryController(mockReq, mockRes);
 
@@ -86,8 +99,10 @@ describe("Category Controller", () => {
       mockReq.body = { name: "Updated Category" };
       mockReq.params = { id: "1" };
 
-      // Mock the database update
-      categoryModel.findByIdAndUpdate.mockResolvedValue(categoryData); // Mocking successful update
+      // Found by id and updated
+      jest
+        .spyOn(categoryModel, "findByIdAndUpdate")
+        .mockResolvedValue(categoryData);
 
       await updateCategoryController(mockReq, mockRes);
 
@@ -104,9 +119,9 @@ describe("Category Controller", () => {
       mockReq.params = { id: "1" };
 
       // Simulate error while updating
-      categoryModel.findByIdAndUpdate.mockRejectedValue(
-        new Error("Update failed")
-      );
+      jest
+        .spyOn(categoryModel, "findByIdAndUpdate")
+        .mockRejectedValue(new Error("Update failed"));
 
       await updateCategoryController(mockReq, mockRes);
 
@@ -121,8 +136,7 @@ describe("Category Controller", () => {
 
   describe("categoryControlller", () => {
     it("should return a list of categories", async () => {
-      // Mock database response
-      categoryModel.find.mockResolvedValue([categoryData]);
+      jest.spyOn(categoryModel, "find").mockResolvedValue([categoryData]);
 
       await categoryControlller(mockReq, mockRes);
 
@@ -135,10 +149,9 @@ describe("Category Controller", () => {
     });
 
     it("should return an error if fetching categories fails", async () => {
-      // Simulate error in fetching categories
-      categoryModel.find.mockRejectedValue(
-        new Error("Failed to fetch categories")
-      );
+      jest
+        .spyOn(categoryModel, "find")
+        .mockRejectedValue(new Error("Failed to fetch categories"));
 
       await categoryControlller(mockReq, mockRes);
 
@@ -155,8 +168,7 @@ describe("Category Controller", () => {
     it("should return a single category", async () => {
       mockReq.params = { slug: "category1" };
 
-      // Mock database response
-      categoryModel.findOne.mockResolvedValue(categoryData);
+      jest.spyOn(categoryModel, "findOne").mockResolvedValue(categoryData);
 
       await singleCategoryController(mockReq, mockRes);
 
@@ -171,8 +183,7 @@ describe("Category Controller", () => {
     it("should return an error if the category is not found", async () => {
       mockReq.params = { slug: "non-existent-category" };
 
-      // Mock no category found
-      categoryModel.findOne.mockResolvedValue(null);
+      jest.spyOn(categoryModel, "findOne").mockResolvedValue(null);
 
       await singleCategoryController(mockReq, mockRes);
 
@@ -188,8 +199,10 @@ describe("Category Controller", () => {
     it("should delete a category successfully", async () => {
       mockReq.params = { id: "1" };
 
-      // Mock successful deletion
-      categoryModel.findByIdAndDelete.mockResolvedValue(categoryData);
+      // Successful deletion
+      jest
+        .spyOn(categoryModel, "findByIdAndDelete")
+        .mockResolvedValue(categoryData);
 
       await deleteCategoryCOntroller(mockReq, mockRes);
 
@@ -203,10 +216,10 @@ describe("Category Controller", () => {
     it("should return an error if deletion fails", async () => {
       mockReq.params = { id: "1" };
 
-      // Simulate error in deletion
-      categoryModel.findByIdAndDelete.mockRejectedValue(
-        new Error("Delete failed")
-      );
+      // Error in deletion
+      jest
+        .spyOn(categoryModel, "findByIdAndDelete")
+        .mockRejectedValue(new Error("Delete failed"));
 
       await deleteCategoryCOntroller(mockReq, mockRes);
 
