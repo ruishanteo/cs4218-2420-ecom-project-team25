@@ -20,7 +20,7 @@ jobs:
       - name: Setup up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         run: |
@@ -29,9 +29,15 @@ jobs:
 
       - name: Install Client dependencies
         working-directory: client
-        run: |
-          npm ci
-          npm install --save-dev @babel/preset-env @babel/preset-react babel-jest identity-obj-proxy jest-environment-jsdom
+        run: npm ci
 
-      - name: Run Jest
+      - name: Run server tests
         run: npm test
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
+
+      - name: Run client tests
+        working-directory: client
+        run: npm test -- --watchAll=false
+        env:
+          CI: true
