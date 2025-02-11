@@ -30,11 +30,11 @@ jobs:
         working-directory: client
         run: npm ci
 
-      - name: Run server tests
+      - name: Run Jest server tests
         run: npm run test:backend
         continue-on-error: true # this allows frontend tests to run even if backend tests fail, for now allow this until we get code cov up
 
-      - name: Run client tests
+      - name: Run Jest client tests
         run: npm run test:frontend
         env:
           CI: true
