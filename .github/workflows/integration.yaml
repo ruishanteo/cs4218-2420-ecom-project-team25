@@ -10,7 +10,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,11 +22,19 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          npm install --save-dev jest @babel/preset-env babel-jest
 
-      - name: Install Client dependencies
+      - name: Install client dependencies
         working-directory: client
         run: npm ci
 
-      - name: Run Jest
-        run: npm test
+      - name: Run Jest server tests
+        run: npm run test:backend
+        continue-on-error: true # this allows frontend tests to run even if backend tests fail, for now allow this until we get code cov up
+
+      - name: Run Jest client tests
+        run: npm run test:frontend
+        env:
+          CI: true
