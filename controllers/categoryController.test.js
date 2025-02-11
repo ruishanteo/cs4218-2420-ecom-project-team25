@@ -32,7 +32,6 @@ describe("Category Controller", () => {
 
   describe("createCategoryController", () => {
     it("should create a new category", async () => {
-      // Mock the request data
       mockReq.body = { name: "New Category" };
 
       categoryModel.findOne.mockResolvedValue(null);
@@ -49,11 +48,9 @@ describe("Category Controller", () => {
     });
 
     it("should return an error if the category already exists", async () => {
-      // Mock the request data
       mockReq.body = { name: "Existing Category" };
 
-      // Mock the database response
-      categoryModel.findOne.mockResolvedValue({ name: "Existing Category" }); // Simulating existing category
+      categoryModel.findOne.mockResolvedValue({ name: "Existing Category" });
 
       await createCategoryController(mockReq, mockRes);
 
@@ -72,6 +69,22 @@ describe("Category Controller", () => {
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.send).toHaveBeenCalledWith({
         message: "Name is required",
+      });
+    });
+
+    it("should return an error if creating a category fails", async () => {
+      mockReq.body = { name: "New Category" };
+
+      categoryModel.findOne.mockResolvedValue(null);
+      categoryModel.prototype.save.mockRejectedValue(new Error("Save failed"));
+
+      await createCategoryController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        error: expect.any(Error),
+        message: "Error in Category",
       });
     });
   });
@@ -175,6 +188,23 @@ describe("Category Controller", () => {
       expect(mockRes.send).toHaveBeenCalledWith({
         message: "Category not found",
         success: false,
+      });
+    });
+
+    it("should return an error if getting category fails", async () => {
+      mockReq.params = { slug: "category1" };
+
+      categoryModel.findOne.mockRejectedValue(
+        new Error("Get single category failed")
+      );
+
+      await singleCategoryController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        error: expect.any(Error),
+        message: "Error While getting Single Category",
       });
     });
   });
