@@ -68,13 +68,12 @@ describe("Profile Page", () => {
 
   const mockToken = "test-token";
 
-  useAuth.mockReturnValue([{ user: mockUser, token: mockToken }, jest.fn()]);
-
   let consoleLogSpy;
 
   beforeEach(() => {
     jest.clearAllMocks();
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {}); // mock console.log to suppress output
+    useAuth.mockReturnValue([{ user: mockUser, token: mockToken }, jest.fn()]);
   });
 
   afterAll(() => {
