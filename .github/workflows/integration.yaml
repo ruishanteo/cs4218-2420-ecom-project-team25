@@ -27,15 +27,14 @@ jobs:
           npm ci
           npm install --save-dev jest @babel/preset-env babel-jest
 
-      - name: Install Client dependencies
+      - name: Install client dependencies
         working-directory: client
         run: npm ci
 
       - name: Run server tests
         run: npm run test:backend
-        continue-on-error: true
 
-      - name: Run frontend tests
+      - name: Run client tests
         run: npm run test:frontend
         env:
           CI: true
