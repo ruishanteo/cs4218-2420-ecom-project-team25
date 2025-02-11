@@ -34,7 +34,7 @@ jobs:
         run: npm run test:backend
         continue-on-error: true # this allows frontend tests to run even if backend tests fail, for now allow this until we get code cov up
 
-      - name: Run frontend tests
+      - name: Run client tests
         run: npm run test:frontend
         env:
           CI: true
