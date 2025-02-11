@@ -31,10 +31,8 @@ jobs:
         working-directory: client
         run: npm ci
 
-      # - name: Run server tests
-      #   run: npm run test:backend
-      #   env:
-      #     NODE_OPTIONS: --experimental-vm-modules
+      - name: Run server tests
+        run: npm run test:backend
 
       - name: Run frontend tests
         run: npm run test:frontend
