@@ -4,27 +4,13 @@ import {
   categoryControlller,
   singleCategoryController,
   deleteCategoryCOntroller,
-} from "../controllers/categoryController.js";
-import categoryModel from "../models/categoryModel.js";
+} from "../controllers/categoryController";
+import categoryModel from "../models/categoryModel";
 import { expect, jest, test } from "@jest/globals";
 
 jest.mock("slugify", () =>
   jest.fn((str) => str.toLowerCase().replace(/\s+/g, "-"))
 );
-
-jest.mock("../models/categoryModel.js", () => {
-  const mockCategoryModel = {
-    findOne: jest.fn(),
-    findByIdAndUpdate: jest.fn(),
-    find: jest.fn(),
-    findByIdAndDelete: jest.fn(),
-    prototype: {
-      save: jest.fn(),
-    },
-  };
-
-  return mockCategoryModel;
-});
 
 const mockRes = {
   status: jest.fn().mockReturnThis(),
