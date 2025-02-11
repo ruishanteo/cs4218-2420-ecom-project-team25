@@ -31,10 +31,9 @@ jobs:
         working-directory: client
         run: npm ci
 
-      - name: Run server tests
-        run: npm run test:backend
-
-      - name: Run client tests
-        run: npm run test:frontend
+      - name: Run all tests (frontend + backend)
+        run: |
+          npm run test:backend
+          npm run test:frontend
         env:
           CI: true
