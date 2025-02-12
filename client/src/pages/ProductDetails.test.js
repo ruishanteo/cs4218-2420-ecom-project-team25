@@ -9,12 +9,12 @@ import {
 import { render, waitFor, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import React from "react";
+import { act } from "react-dom/test-utils";
 import axios from "axios";
 import ProductDetails from "./ProductDetails";
 import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
 import { cleanup } from "@testing-library/react";
-import { act } from "react-dom/test-utils";
 jest.mock("axios");
 jest.mock("react-hot-toast");
 
@@ -106,13 +106,16 @@ describe("Product Details Page", () => {
       .mockResolvedValueOnce({ data: { product: mockProduct } }) // First API call for product data
       .mockResolvedValueOnce({ data: { products: mockRelatedProducts } }); // Second API call for related products
 
-    render(
-      <MemoryRouter initialEntries={["/product/mock-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    // without act, a warning of not wrapping in act will be thrown...
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/product/mock-product"]}>
+          <Routes>
+            <Route path="/product/:slug" element={<ProductDetails />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
 
     await waitFor(() =>
       expect(axios.get).toHaveBeenCalledWith(
@@ -153,13 +156,15 @@ describe("Product Details Page", () => {
     const mockError = new Error("Failed to fetch product");
     axios.get = jest.fn().mockRejectedValueOnce(mockError);
 
-    render(
-      <MemoryRouter initialEntries={["/product/mock-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/product/mock-product"]}>
+          <Routes>
+            <Route path="/product/:slug" element={<ProductDetails />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(
@@ -176,13 +181,15 @@ describe("Product Details Page", () => {
       .mockResolvedValueOnce({ data: { product: mockProduct } }) // First call for product data
       .mockRejectedValueOnce(mockError); // Second call for related products
 
-    render(
-      <MemoryRouter initialEntries={["/product/mock-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/product/mock-product"]}>
+          <Routes>
+            <Route path="/product/:slug" element={<ProductDetails />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(
@@ -212,13 +219,15 @@ describe("Product Details Page", () => {
 
     const mockNewUpdatedCart = [mockProduct];
 
-    render(
-      <MemoryRouter initialEntries={["/product/mock-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/product/mock-product"]}>
+          <Routes>
+            <Route path="/product/:slug" element={<ProductDetails />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(
@@ -263,13 +272,15 @@ describe("Product Details Page", () => {
       .mockResolvedValueOnce({ data: { product: mockProduct } }) // First call for product data
       .mockResolvedValueOnce({ data: { products: mockRelatedProducts } }); // Second call for related products
 
-    render(
-      <MemoryRouter initialEntries={["/product/mock-product"]}>
-        <Routes>
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/product/mock-product"]}>
+          <Routes>
+            <Route path="/product/:slug" element={<ProductDetails />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith(
@@ -304,13 +315,15 @@ describe("Product Details Page", () => {
   it("should not fetch product if slug doesnt exist", async () => {
     useParams.mockReturnValue({ slug: "" });
 
-    render(
-      <MemoryRouter initialEntries={["/product"]}>
-        <Routes>
-          <Route path="/product" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/product/mock-product"]}>
+          <Routes>
+            <Route path="/product/:slug" element={<ProductDetails />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
 
     await waitFor(() => {
       expect(axios.get).not.toHaveBeenCalled();
