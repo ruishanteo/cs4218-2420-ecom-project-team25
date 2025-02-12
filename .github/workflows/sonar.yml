@@ -1,0 +1,44 @@
+name: SonarQube Analysis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  sonar:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests and Collect Coverage
+        run: npm test -- --coverage
+
+      - name: Run SonarScanner
+        env:
+          # FIX SECURITY VULNERABILITY 
+          SONAR_TOKEN: squ_f7201e61c3e6601e639f92589d7be10d31ba8d89
+
+        run: |
+          npm install -g sonarqube-scanner
+          sonar-scanner
