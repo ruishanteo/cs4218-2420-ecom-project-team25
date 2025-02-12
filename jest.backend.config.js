@@ -13,7 +13,7 @@ module.exports = {
 
   // jest code coverage
   collectCoverage: true,
-  collectCoverageFrom: ["controllers/**"],
+  collectCoverageFrom: ["controllers/**", "models/**"],
   coverageThreshold: {
     global: {
       lines: 15,
