@@ -24,7 +24,7 @@ jobs:
 
       - name: Build MarkBind site
         run: |
-          cd client
+          cd client/src
           markbind build
 
       - name: Deploy to GitHub Pages
