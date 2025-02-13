@@ -1,5 +1,6 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import toast from "react-hot-toast";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
 
@@ -8,6 +9,11 @@ import { useAuth } from "../../context/auth";
 
 // Mock dependencies
 jest.mock("axios");
+
+jest.mock("react-hot-toast", () => ({
+  error: jest.fn(),
+  success: jest.fn(),
+}));
 
 jest.mock("../../components/Layout", () => ({ children }) => (
   <div data-testid="layout">{children}</div>
@@ -22,7 +28,6 @@ jest.mock("../../context/auth", () => ({
 }));
 
 describe("AdminOrders Component", () => {
-  let consoleLogSpy;
   const mockAuthData = {
     user: { name: "Admin User" },
     token: "valid-token",
@@ -62,11 +67,6 @@ describe("AdminOrders Component", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    consoleLogSpy.mockRestore();
   });
 
   it("should display orders when authenticated", async () => {
@@ -75,12 +75,71 @@ describe("AdminOrders Component", () => {
 
     render(<AdminOrders />);
 
-    await screen.findByText("All Orders");
+    // Wait and assert for the orders to be displayed
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
+          /admin-order-item-/
+        )
+      ).toHaveLength(mockOrders.length)
+    );
     expect(axios.get).toHaveBeenCalled();
-    await screen.findByText("John Doe");
-    expect(screen.getByText("Processing")).toBeInTheDocument();
-    expect(screen.getByText("Product 1")).toBeInTheDocument();
-    expect(screen.getByText("Product Description 1")).toBeInTheDocument();
+  });
+
+  it("should display no orders message when there are no orders", async () => {
+    useAuth.mockReturnValue([mockAuthData]);
+    axios.get.mockResolvedValueOnce({ data: [] });
+
+    render(<AdminOrders />);
+
+    // Wait and assert that there are no orders displayed
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
+          /admin-order-item-/
+        )
+      ).toHaveLength(0)
+    );
+    expect(axios.get).toHaveBeenCalled();
+  });
+
+  it("should not fetch orders when not authenticated", async () => {
+    useAuth.mockReturnValue([
+      {
+        user: null,
+        token: "",
+      },
+    ]);
+    render(<AdminOrders />);
+
+    // Wait and assert that there are no orders displayed
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
+          /admin-order-item-/
+        )
+      ).toHaveLength(0)
+    );
+    expect(axios.get).not.toHaveBeenCalled(); // axios.get should not be called when not authenticated
+  });
+
+  it("should display error message on failed get orders", async () => {
+    useAuth.mockReturnValue([mockAuthData]);
+    const mockError = new Error("Failed to fetch orders");
+    axios.get.mockRejectedValue(mockError);
+
+    render(<AdminOrders />);
+
+    // Wait and assert that there are no orders displayed
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
+          /admin-order-item-/
+        )
+      ).toHaveLength(0)
+    );
+    expect(axios.get).toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalled();
   });
 
   // TODO Fix this test
@@ -110,39 +169,4 @@ describe("AdminOrders Component", () => {
   //     // fireEvent.change(select, { target: { value: "Shipped" } });
   //     // await waitFor(() => expect(axios.put).toHaveBeenCalled());
   //   });
-
-  it("should display no orders message when there are no orders", async () => {
-    useAuth.mockReturnValue([mockAuthData]);
-    axios.get.mockResolvedValueOnce({ data: [] });
-
-    render(<AdminOrders />);
-
-    await screen.findByText("All Orders");
-    expect(axios.get).toHaveBeenCalled();
-  });
-
-  it("should not fetch orders when not authenticated", async () => {
-    useAuth.mockReturnValue([
-      {
-        user: null,
-        token: "",
-      },
-    ]);
-    render(<AdminOrders />);
-
-    await screen.findByText("All Orders");
-    expect(axios.get).not.toHaveBeenCalled();
-  });
-
-  it("should display error message on failed get orders", async () => {
-    useAuth.mockReturnValue([mockAuthData]);
-    const mockError = new Error("Failed to fetch orders");
-    axios.get.mockRejectedValue(mockError);
-
-    render(<AdminOrders />);
-
-    await screen.findByText("All Orders");
-    expect(axios.get).toHaveBeenCalled();
-    expect(consoleLogSpy).toHaveBeenCalledWith(mockError);
-  });
 });

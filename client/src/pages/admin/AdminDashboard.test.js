@@ -33,11 +33,11 @@ describe("AdminDashboard Component", () => {
     render(<AdminDashboard />);
 
     // Expect the AdminMenu component to be rendered with the correct props
-    expect(screen.getByText("Admin Name : Admin User")).toBeInTheDocument();
-    expect(
-      screen.getByText("Admin Email : admin@example.com")
-    ).toBeInTheDocument();
-    expect(screen.getByText("Admin Contact : 1234567890")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-name")).toHaveTextContent("Admin User");
+    expect(screen.getByTestId("admin-email")).toHaveTextContent(
+      "admin@example.com"
+    );
+    expect(screen.getByTestId("admin-contact")).toHaveTextContent("1234567890");
   });
 
   it("should not crash when user is not authenticated", () => {
@@ -46,8 +46,12 @@ describe("AdminDashboard Component", () => {
     render(<AdminDashboard />);
 
     // Expect the AdminMenu component to be rendered with empty props
-    expect(screen.getByText("Admin Name :")).toBeInTheDocument();
-    expect(screen.getByText("Admin Email :")).toBeInTheDocument();
-    expect(screen.getByText("Admin Contact :")).toBeInTheDocument();
+    expect(screen.getByTestId("admin-name")).toHaveTextContent("Admin Name :");
+    expect(screen.getByTestId("admin-email")).toHaveTextContent(
+      "Admin Email :"
+    );
+    expect(screen.getByTestId("admin-contact")).toHaveTextContent(
+      "Admin Contact :"
+    );
   });
 });

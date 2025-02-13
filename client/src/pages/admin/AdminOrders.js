@@ -8,22 +8,24 @@ import moment from "moment";
 import { Select } from "antd";
 const { Option } = Select;
 
+const status = [
+  "Not Processed",
+  "Processing",
+  "Shipped",
+  "Delivered",
+  "Cancelled",
+];
+
 const AdminOrders = () => {
-  const [status, setStatus] = useState([
-    "Not Process",
-    "Processing",
-    "Shipped",
-    "deliverd",
-    "cancel",
-  ]);
-  const [changeStatus, setCHangeStatus] = useState("");
   const [orders, setOrders] = useState([]);
-  const [auth, setAuth] = useAuth();
+  const [auth] = useAuth();
+
   const getOrders = async () => {
     try {
       const { data } = await axios.get("/api/v1/auth/all-orders");
       setOrders(data);
     } catch (error) {
+      toast.error("Something went wrong while fetching orders");
       console.log(error);
     }
   };
@@ -34,11 +36,12 @@ const AdminOrders = () => {
 
   const handleChange = async (orderId, value) => {
     try {
-      const { data } = await axios.put(`/api/v1/auth/order-status/${orderId}`, {
+      await axios.put(`/api/v1/auth/order-status/${orderId}`, {
         status: value,
       });
       getOrders();
     } catch (error) {
+      toast.error("Something went wrong while updating status");
       console.log(error);
     }
   };
@@ -48,18 +51,22 @@ const AdminOrders = () => {
         <div className="col-md-3">
           <AdminMenu />
         </div>
-        <div className="col-md-9">
+        <div className="col-md-9" data-testid="admin-orders-list">
           <h1 className="text-center">All Orders</h1>
           {orders?.map((o, i) => {
             return (
-              <div className="border shadow" key={o._id}>
+              <div
+                className="border shadow"
+                key={o._id}
+                data-testid={`admin-order-item-${i}`}
+              >
                 <table className="table">
                   <thead>
                     <tr>
                       <th scope="col">#</th>
                       <th scope="col">Status</th>
                       <th scope="col">Buyer</th>
-                      <th scope="col"> date</th>
+                      <th scope="col">Date</th>
                       <th scope="col">Payment</th>
                       <th scope="col">Quantity</th>
                     </tr>

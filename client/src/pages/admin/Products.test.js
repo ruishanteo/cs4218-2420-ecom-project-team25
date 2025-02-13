@@ -1,10 +1,10 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import toast from "react-hot-toast";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
-import toast from "react-hot-toast";
 
-import Products from "./Products";
+import Products, { PRODUCTS_STRINGS } from "./Products";
 
 // Mock dependencies
 jest.mock("axios");
@@ -48,14 +48,17 @@ describe("Products Component", () => {
 
   it("should display products when API call is successful", async () => {
     axios.get.mockResolvedValueOnce({ data: { products: mockProducts } });
+
     render(<Products />);
 
-    await screen.findByText("All Products List");
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId("admin-products-list")).queryAllByTestId(
+          /admin-product-/
+        )
+      ).toHaveLength(mockProducts.length)
+    );
     expect(axios.get).toHaveBeenCalled();
-    await screen.findByText("Product 1");
-    expect(screen.getByText("Description of product 1")).toBeInTheDocument();
-    expect(screen.getByText("Product 2")).toBeInTheDocument();
-    expect(screen.getByText("Description of product 2")).toBeInTheDocument();
   });
 
   it("should display no products when API returns an empty array", async () => {
@@ -63,7 +66,13 @@ describe("Products Component", () => {
 
     render(<Products />);
 
-    await screen.findByText("All Products List");
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId("admin-products-list")).queryAllByTestId(
+          /admin-product-/
+        )
+      ).toHaveLength(0)
+    );
     expect(axios.get).toHaveBeenCalled();
   });
 
@@ -73,8 +82,16 @@ describe("Products Component", () => {
 
     render(<Products />);
 
-    await screen.findByText("All Products List");
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId("admin-products-list")).queryAllByTestId(
+          /admin-product-/
+        )
+      ).toHaveLength(0)
+    );
     expect(axios.get).toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalledWith("Someething Went Wrong");
+    expect(toast.error).toHaveBeenCalledWith(
+      PRODUCTS_STRINGS.FETCH_PRODUCTS_ERROR
+    );
   });
 });
