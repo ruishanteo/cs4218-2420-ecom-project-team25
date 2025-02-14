@@ -4,7 +4,6 @@ import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
 import SearchInput from './SearchInput';
-import { beforeEach } from 'node:test';
 
 jest.mock('axios');
 

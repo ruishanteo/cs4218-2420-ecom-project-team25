@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
+import { render, fireEvent, waitFor } from '@testing-library/react';
 
 import CategoryForm from './CategoryForm';
 
@@ -11,8 +12,8 @@ describe('CategoryForm Component', () => {
   it('renders category form', () => {
     const { getByText, getByPlaceholderText } = render(<CategoryForm />);
 
-    // TODO: fix buggy test case
-    expect(getByText('Submit')).toBeInTheDocument('');
+    // fixed by GitHub Copilot (need to import the extend-expect library)
+    expect(getByText('Submit')).toBeInTheDocument();
     expect(getByPlaceholderText('Enter new category')).toBeInTheDocument();
   });
 
