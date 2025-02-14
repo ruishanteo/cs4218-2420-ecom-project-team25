@@ -40,7 +40,8 @@ describe('CategoryForm Component', () => {
   // TODO: might need to mock the form?
   it('should submit the form', async () => {
     // use a mock function to test if the function is invoked when the form is submitted
-    const handleSubmit = jest.fn();
+    // fix for the missing handleSubmit prototype function inspired by: https://stackoverflow.com/questions/62216232/error-not-implemented-htmlformelement-prototype-submit
+    const handleSubmit = jest.fn((x) => x.preventDefault());
 
     // render the component
     const { getByText } = render(<CategoryForm handleSubmit={handleSubmit} />);
