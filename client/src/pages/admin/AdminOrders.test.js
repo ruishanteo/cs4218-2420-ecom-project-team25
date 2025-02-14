@@ -1,10 +1,11 @@
 import React from "react";
 import toast from "react-hot-toast";
 import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
 
-import AdminOrders from "./AdminOrders";
+import AdminOrders, { ADMIN_ORDERS_STRINGS, API_URLS } from "./AdminOrders";
 import { useAuth } from "../../context/auth";
 
 // Mock dependencies
@@ -14,6 +15,33 @@ jest.mock("react-hot-toast", () => ({
   error: jest.fn(),
   success: jest.fn(),
 }));
+
+jest.mock("antd", () => {
+  const actualAntd = jest.requireActual("antd"); // Keep other Antd components working
+  const MockSelect = ({
+    children,
+    onChange,
+    "data-testid": testId,
+    defaultValue,
+  }) => (
+    <select
+      data-testid={testId}
+      defaultValue={defaultValue}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {children}
+    </select>
+  );
+
+  MockSelect.Option = ({ children, value }) => (
+    <option value={value}>{children}</option>
+  );
+
+  return {
+    ...actualAntd,
+    Select: MockSelect,
+  };
+});
 
 jest.mock("../../components/Layout", () => ({ children }) => (
   <div data-testid="layout">{children}</div>
@@ -83,7 +111,7 @@ describe("AdminOrders Component", () => {
         )
       ).toHaveLength(mockOrders.length)
     );
-    expect(axios.get).toHaveBeenCalled();
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_ALL_ORDERS);
   });
 
   it("should display no orders message when there are no orders", async () => {
@@ -100,7 +128,7 @@ describe("AdminOrders Component", () => {
         )
       ).toHaveLength(0)
     );
-    expect(axios.get).toHaveBeenCalled();
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_ALL_ORDERS);
   });
 
   it("should not fetch orders when not authenticated", async () => {
@@ -138,35 +166,68 @@ describe("AdminOrders Component", () => {
         )
       ).toHaveLength(0)
     );
-    expect(axios.get).toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalled();
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_ALL_ORDERS);
+    expect(toast.error).toHaveBeenCalledWith(
+      ADMIN_ORDERS_STRINGS.FETCH_ORDERS_ERROR
+    );
   });
 
-  // TODO Fix this test
-  //   it("should handle order status change", async () => {
-  //     useAuth.mockReturnValue([mockAuthData]);
-  //     const copyMockOrders = [...mockOrders];
-  //     copyMockOrders[0].status = "Shipped";
+  it("should handle order status change", async () => {
+    useAuth.mockReturnValue([mockAuthData]);
+    axios.get.mockResolvedValueOnce({ data: mockOrders });
+    axios.put.mockResolvedValueOnce({ data: { success: true } });
 
-  //     axios.get.mockResolvedValueOnce({ data: mockOrders });
-  //     //   .mockResolvedValueOnce({ data: copyMockOrders });
-  //     axios.put.mockResolvedValueOnce({ data: { success: true } });
+    render(<AdminOrders />);
 
-  //     render(<AdminOrders />);
+    // Wait for the orders to be displayed
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
+          /admin-order-item-/
+        )
+      ).toHaveLength(mockOrders.length)
+    );
 
-  //     await screen.findByText("All Orders");
-  //     await screen.findByText("John Doe");
+    const newShippingStatus = "Shipped";
+    const select = screen.getByTestId(`status-${mockOrders[0]._id}`);
+    userEvent.selectOptions(select, newShippingStatus);
 
-  //     const select = screen.getByTestId(`status-${mockOrders[0]._id}`);
-  //     console.info(select.value, select);
+    await waitFor(() =>
+      expect(axios.put).toHaveBeenCalledWith(
+        `${API_URLS.UPDATE_ORDER_STATUS}/${mockOrders[0]._id}`,
+        { status: newShippingStatus }
+      )
+    );
+  });
 
-  //     const selectElement = screen.getByRole("combobox");
-  //     userEvent.click(selectElement);
+  it("should handle failure in order status change", async () => {
+    useAuth.mockReturnValue([mockAuthData]);
+    axios.get.mockResolvedValueOnce({ data: mockOrders });
+    axios.put.mockRejectedValueOnce(new Error("Failed to update order status"));
 
-  //     console.info(select.value);
-  //     expect(axios.put).toHaveBeenCalled();
+    render(<AdminOrders />);
 
-  //     // fireEvent.change(select, { target: { value: "Shipped" } });
-  //     // await waitFor(() => expect(axios.put).toHaveBeenCalled());
-  //   });
+    // Wait for the orders to be displayed
+    await waitFor(() =>
+      expect(
+        within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
+          /admin-order-item-/
+        )
+      ).toHaveLength(mockOrders.length)
+    );
+
+    const newShippingStatus = "Shipped";
+    const select = screen.getByTestId(`status-${mockOrders[0]._id}`);
+    userEvent.selectOptions(select, newShippingStatus);
+
+    await waitFor(() =>
+      expect(axios.put).toHaveBeenCalledWith(
+        `${API_URLS.UPDATE_ORDER_STATUS}/${mockOrders[0]._id}`,
+        { status: newShippingStatus }
+      )
+    );
+    expect(toast.error).toHaveBeenCalledWith(
+      ADMIN_ORDERS_STRINGS.UPDATE_STATUS_ERROR
+    );
+  });
 });

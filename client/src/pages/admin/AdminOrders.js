@@ -8,6 +8,17 @@ import moment from "moment";
 import { Select } from "antd";
 const { Option } = Select;
 
+export const ADMIN_ORDERS_STRINGS = {
+  FETCH_ORDERS_ERROR: "Something went wrong while fetching orders",
+  UPDATE_STATUS_ERROR: "Something went wrong while updating status",
+};
+
+export const API_URLS = {
+  GET_ALL_ORDERS: "/api/v1/auth/all-orders",
+  UPDATE_ORDER_STATUS: "/api/v1/auth/order-status",
+  GET_PRODUCT_PHOTO: "/api/v1/product/product-photo",
+};
+
 const status = [
   "Not Processed",
   "Processing",
@@ -22,10 +33,10 @@ const AdminOrders = () => {
 
   const getOrders = async () => {
     try {
-      const { data } = await axios.get("/api/v1/auth/all-orders");
+      const { data } = await axios.get(API_URLS.GET_ALL_ORDERS);
       setOrders(data);
     } catch (error) {
-      toast.error("Something went wrong while fetching orders");
+      toast.error(ADMIN_ORDERS_STRINGS.FETCH_ORDERS_ERROR);
       console.log(error);
     }
   };
@@ -36,12 +47,12 @@ const AdminOrders = () => {
 
   const handleChange = async (orderId, value) => {
     try {
-      await axios.put(`/api/v1/auth/order-status/${orderId}`, {
+      await axios.put(`${API_URLS.UPDATE_ORDER_STATUS}/${orderId}`, {
         status: value,
       });
       getOrders();
     } catch (error) {
-      toast.error("Something went wrong while updating status");
+      toast.error(ADMIN_ORDERS_STRINGS.UPDATE_STATUS_ERROR);
       console.log(error);
     }
   };
@@ -100,7 +111,7 @@ const AdminOrders = () => {
                     <div className="row mb-2 p-3 card flex-row" key={p._id}>
                       <div className="col-md-4">
                         <img
-                          src={`/api/v1/product/product-photo/${p._id}`}
+                          src={`${API_URLS.GET_PRODUCT_PHOTO}/${p._id}`}
                           className="card-img-top"
                           alt={p.name}
                           width="100px"
