@@ -1,7 +1,12 @@
 import React from "react";
 import toast from "react-hot-toast";
-import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
 
@@ -17,7 +22,7 @@ jest.mock("react-hot-toast", () => ({
 }));
 
 jest.mock("antd", () => {
-  const actualAntd = jest.requireActual("antd"); // Keep other Antd components working
+  const actualAntd = jest.requireActual("antd");
   const MockSelect = ({
     children,
     onChange,
@@ -190,7 +195,7 @@ describe("AdminOrders Component", () => {
 
     const newShippingStatus = "Shipped";
     const select = screen.getByTestId(`status-${mockOrders[0]._id}`);
-    userEvent.selectOptions(select, newShippingStatus);
+    fireEvent.change(select, { target: { value: newShippingStatus } });
 
     await waitFor(() =>
       expect(axios.put).toHaveBeenCalledWith(
@@ -218,7 +223,7 @@ describe("AdminOrders Component", () => {
 
     const newShippingStatus = "Shipped";
     const select = screen.getByTestId(`status-${mockOrders[0]._id}`);
-    userEvent.selectOptions(select, newShippingStatus);
+    fireEvent.change(select, { target: { value: newShippingStatus } });
 
     await waitFor(() =>
       expect(axios.put).toHaveBeenCalledWith(
