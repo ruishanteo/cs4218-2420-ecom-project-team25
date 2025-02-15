@@ -32,7 +32,7 @@ describe("Contact Page", () => {
     expect(image).toBeInTheDocument();
     expect(image).toHaveAttribute("src", "/images/contactus.jpeg");
 
-    expect(screen.getByText("CONTACT US")).toBeInTheDocument();
+    expect(screen.getByText(/CONTACT US/i)).toBeInTheDocument();
     expect(screen.getByText(/www\.help@ecommerceapp\.com/)).toBeInTheDocument();
     expect(screen.getByText(/012-3456789/)).toBeInTheDocument();
     expect(

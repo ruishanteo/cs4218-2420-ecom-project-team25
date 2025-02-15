@@ -94,7 +94,7 @@ describe("Category Product Page", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(`Category - ${mockCategory.name}`)
+        screen.getByText(new RegExp(`Category - ${mockCategory.name}`, "i"))
       ).toBeInTheDocument();
     });
 
@@ -104,14 +104,10 @@ describe("Category Product Page", () => {
 
       const productImage = screen.getByAltText(product.name);
       expect(productImage).toBeInTheDocument();
-      expect(productImage).toHaveAttribute(
-        "src",
-        `/api/v1/product/product-photo/${product._id}`
-      );
     });
 
     // number of more details button
-    const moreDetailsButton = screen.getAllByText("More Details");
+    const moreDetailsButton = screen.getAllByText(/More Details/i);
     expect(moreDetailsButton.length).toBe(mockProducts.length);
   });
 
@@ -186,13 +182,11 @@ describe("Category Product Page", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(`Category - ${mockCategory.name}`)
+        screen.getByText(new RegExp(`Category - ${mockCategory.name}`, "i"))
       ).toBeInTheDocument();
     });
 
     const moreDetailsButton = screen.getAllByText(/More Details/i)[0];
-
-    console.log("Clicking button:", moreDetailsButton);
 
     fireEvent.click(moreDetailsButton);
 

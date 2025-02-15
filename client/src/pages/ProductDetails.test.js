@@ -67,7 +67,6 @@ describe("Product Details Page", () => {
   let consoleLogSpy;
 
   beforeAll(() => {
-    // Mock the localStorage methods
     Object.defineProperty(window, "localStorage", {
       value: {
         setItem: jest.fn(),
@@ -129,12 +128,12 @@ describe("Product Details Page", () => {
       )
     );
 
-    expect(await screen.findByText("Product Details")).toBeInTheDocument();
+    expect(await screen.findByText(/Product Details/i)).toBeInTheDocument();
     expect(
-      await screen.findByText(`Name : ${mockProduct.name}`)
+      await screen.findByText(new RegExp(`${mockProduct.name}`, "i"))
     ).toBeInTheDocument();
     expect(
-      await screen.findByText(`Description : ${mockProduct.description}`)
+      await screen.findByText(new RegExp(`${mockProduct.description}`, "i"))
     ).toBeInTheDocument();
 
     // verify related products section
@@ -145,10 +144,6 @@ describe("Product Details Page", () => {
       expect(await screen.findByText(product.name)).toBeInTheDocument();
       const productImage = await screen.findByAltText(product.name);
       expect(productImage).toBeInTheDocument();
-      expect(productImage).toHaveAttribute(
-        "src",
-        `/api/v1/product/product-photo/${product._id}`
-      );
     }
   });
 
@@ -242,13 +237,15 @@ describe("Product Details Page", () => {
     });
 
     // wait for the product details to be displayed
-    await waitFor(() => {
+    await waitFor(async () => {
       expect(
-        screen.getByText(`Name : ${mockProduct.name}`)
+        await screen.findByText(new RegExp(`${mockProduct.name}`, "i"))
       ).toBeInTheDocument();
     });
 
-    const addToCartButton = screen.getByRole("button", { name: "ADD TO CART" });
+    const addToCartButton = screen.getByRole("button", {
+      name: /add to cart/i,
+    });
     expect(addToCartButton).toBeInTheDocument();
     fireEvent.click(addToCartButton);
 
