@@ -34,9 +34,9 @@ describe("useAuth Hook", () => {
     });
 
     await waitFor(() => {
-      expect(localStorage.getItem).toHaveBeenCalledWith("auth");
+      expect(result.current[0]).toEqual(mockAuth);
     });
-    expect(result.current[0]).toEqual(mockAuth);
+    expect(localStorage.getItem).toHaveBeenCalledWith("auth");
   });
 
   it("should update auth state and localStorage when setAuth is called", () => {
