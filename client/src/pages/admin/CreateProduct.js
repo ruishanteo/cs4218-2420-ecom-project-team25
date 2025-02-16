@@ -30,6 +30,11 @@ export const CREATE_PRODUCT_STRINGS = {
   PRODUCT_CREATED: "Product created successfully",
 };
 
+export const API_URLS = {
+  CREATE_PRODUCT: "/api/v1/product/create-product",
+  GET_CATEGORIES: "/api/v1/category/get-category",
+};
+
 const CreateProduct = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
@@ -44,7 +49,7 @@ const CreateProduct = () => {
   useEffect(() => {
     const getAllCategory = async () => {
       try {
-        const { data } = await axios.get("/api/v1/category/get-category");
+        const { data } = await axios.get(API_URLS.GET_CATEGORIES);
         if (data?.success) {
           setCategories(data?.category);
         } else {
@@ -69,10 +74,7 @@ const CreateProduct = () => {
       productData.append("photo", photo);
       productData.append("category", category);
       productData.append("shipping", shipping);
-      const { data } = await axios.post(
-        "/api/v1/product/create-product",
-        productData
-      );
+      const { data } = await axios.post(API_URLS.CREATE_PRODUCT, productData);
       if (data?.success) {
         toast.success(CREATE_PRODUCT_STRINGS.PRODUCT_CREATED);
         navigate("/dashboard/admin/products");
@@ -104,18 +106,20 @@ const CreateProduct = () => {
                 onChange={(value) => {
                   setCategory(value);
                 }}
+                data-testid="create-product-category-select"
               >
                 {categories?.map((c) => (
-                  <Option key={c._id} value={c._id}>
+                  <Option
+                    key={c._id}
+                    value={c._id}
+                    data-testid={`create-product-option-${c._id}`}
+                  >
                     {c.name}
                   </Option>
                 ))}
               </Select>
               <div className="mb-3">
-                <label
-                  className="btn btn-outline-secondary col-md-12"
-                  data-testid="create-product-photo-input"
-                >
+                <label className="btn btn-outline-secondary col-md-12">
                   {photo
                     ? photo.name
                     : CREATE_PRODUCT_STRINGS.UPLOAD_PHOTO_ACTION}
@@ -125,6 +129,7 @@ const CreateProduct = () => {
                     accept="image/*"
                     onChange={(e) => setPhoto(e.target.files[0])}
                     hidden
+                    data-testid="create-product-photo-input"
                   />
                 </label>
               </div>
@@ -193,13 +198,14 @@ const CreateProduct = () => {
                   showSearch
                   className="form-select mb-3"
                   onChange={(value) => {
-                    setShipping(value);
+                    setShipping(value === "true");
                   }}
+                  data-testid="create-product-shipping-select"
                 >
-                  <Option value="0">
+                  <Option value="false">
                     {CREATE_PRODUCT_STRINGS.SELECT_SHIPPING_NO_ACTION}
                   </Option>
-                  <Option value="1">
+                  <Option value="true">
                     {CREATE_PRODUCT_STRINGS.SELECT_SHIPPING_YES_ACTION}
                   </Option>
                 </Select>
