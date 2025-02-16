@@ -34,9 +34,10 @@ export const UPDATE_PRODUCT_STRINGS = {
 
 export const API_URLS = {
   GET_PRODUCT: "/api/v1/product/get-product",
-  GET_CATEGORY: "/api/v1/category/get-category",
+  GET_CATEGORIES: "/api/v1/category/get-category",
   UPDATE_PRODUCT: "/api/v1/product/update-product",
   DELETE_PRODUCT: "/api/v1/product/delete-product",
+  GET_PRODUCT_PHOTO: "/api/v1/product/product-photo",
 };
 
 const UpdateProduct = () => {
@@ -80,7 +81,7 @@ const UpdateProduct = () => {
   useEffect(() => {
     const getAllCategory = async () => {
       try {
-        const { data } = await axios.get(API_URLS.GET_CATEGORY);
+        const { data } = await axios.get(API_URLS.GET_CATEGORIES);
         if (!data?.success) {
           throw new Error("Error in getting category");
         }
@@ -106,7 +107,8 @@ const UpdateProduct = () => {
       productData.append("quantity", quantity);
       photo && productData.append("photo", photo);
       productData.append("category", category);
-      const { data } = axios.put(
+      productData.append("shipping", shipping);
+      const { data } = await axios.put(
         `${API_URLS.UPDATE_PRODUCT}/${id}`,
         productData
       );
@@ -168,21 +170,19 @@ const UpdateProduct = () => {
                 ))}
               </Select>
               <div className="mb-3">
-                <label
-                  className="btn btn-outline-secondary col-md-12"
-                  data-testid="admin-upload-photo-button"
-                >
+                <label className="btn btn-outline-secondary col-md-12">
                   {photo
                     ? photo.name
                     : UPDATE_PRODUCT_STRINGS.UPLOAD_PHOTO_ACTION}
-                  <input
-                    type="file"
-                    name="photo"
-                    accept="image/*"
-                    onChange={(e) => setPhoto(e.target.files[0])}
-                    hidden
-                  />
                 </label>
+                <input
+                  type="file"
+                  name="photo"
+                  accept="image/*"
+                  onChange={(e) => setPhoto(e.target.files[0])}
+                  data-testid="admin-update-product-photo-input"
+                  hidden
+                />
               </div>
               <div className="mb-3">
                 {photo ? (
@@ -197,7 +197,7 @@ const UpdateProduct = () => {
                 ) : (
                   <div className="text-center">
                     <img
-                      src={`/api/v1/product/product-photo/${id}`}
+                      src={`${API_URLS.GET_PRODUCT_PHOTO}/${id}`}
                       alt="product_photo"
                       height={"200px"}
                       className="img img-responsive"

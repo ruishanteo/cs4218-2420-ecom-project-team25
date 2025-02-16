@@ -4,7 +4,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
 
-import Products, { PRODUCTS_STRINGS } from "./Products";
+import Products, { API_URLS, PRODUCTS_STRINGS } from "./Products";
 
 // Mock dependencies
 jest.mock("axios");
@@ -58,7 +58,7 @@ describe("Products Component", () => {
         )
       ).toHaveLength(mockProducts.length)
     );
-    expect(axios.get).toHaveBeenCalled();
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
   });
 
   it("should display no products when API returns an empty array", async () => {
@@ -73,7 +73,7 @@ describe("Products Component", () => {
         )
       ).toHaveLength(0)
     );
-    expect(axios.get).toHaveBeenCalled();
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
   });
 
   it("should display an error message when API call fails", async () => {
@@ -89,7 +89,7 @@ describe("Products Component", () => {
         )
       ).toHaveLength(0)
     );
-    expect(axios.get).toHaveBeenCalled();
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
     expect(toast.error).toHaveBeenCalledWith(
       PRODUCTS_STRINGS.FETCH_PRODUCTS_ERROR
     );

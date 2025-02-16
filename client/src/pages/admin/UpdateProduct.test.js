@@ -1,7 +1,14 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  act,
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
+import { userEvent } from "@testing-library/user-event";
 import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
 
@@ -41,8 +48,10 @@ jest.mock("antd", () => {
     </select>
   );
 
-  MockSelect.Option = ({ children, value }) => (
-    <option value={value}>{children}</option>
+  MockSelect.Option = ({ children, value, "data-testid": testId }) => (
+    <option value={value} data-testid={testId}>
+      {children}
+    </option>
   );
 
   return {
@@ -85,7 +94,7 @@ describe("UpdateProduct Component", () => {
   ];
 
   const GET_SINGLE_PRODUCT_URL = `${API_URLS.GET_PRODUCT}/${mockParams.slug}`;
-  const GET_ALL_CATEGORIES_URL = API_URLS.GET_CATEGORY;
+  const GET_ALL_CATEGORIES_URL = API_URLS.GET_CATEGORIES;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -198,8 +207,10 @@ describe("UpdateProduct Component", () => {
       photo: new File(["dummy content"], "test-photo.jpg", {
         type: "image/jpeg",
       }),
-      // "category": mockProduct.product.category._id
+      category: mockCategories[1]._id,
+      shipping: "false",
     };
+    const user = userEvent.setup();
     URL.createObjectURL = jest.fn().mockReturnValue("test-url");
     axios.get.mockImplementation((url) => {
       if (url === GET_SINGLE_PRODUCT_URL) {
@@ -242,17 +253,21 @@ describe("UpdateProduct Component", () => {
         target: { value: inputFormData.quantity },
       }
     );
-    fireEvent.change(screen.getByTestId("admin-upload-photo-button"), {
-      target: { files: [inputFormData.photo] },
-    });
     fireEvent.change(
       screen.getByTestId("admin-update-product-category-select"),
-      { target: { value: mockCategories[1].name } }
+      { target: { value: inputFormData.category } }
     );
     fireEvent.change(
       screen.getByTestId("admin-update-product-shipping-select"),
-      { target: { value: (!mockProduct.product.shipping).toString() } }
+      { target: { value: inputFormData.shipping } }
     );
+    const uploadInput = screen.getByTestId("admin-update-product-photo-input");
+    await act(async () => {
+      await user.upload(uploadInput, inputFormData.photo);
+    });
+    await waitFor(() => {
+      expect(uploadInput.files).toHaveLength(1);
+    });
     fireEvent.click(screen.getByTestId("admin-update-product-button"));
 
     await waitFor(() => {
@@ -261,16 +276,13 @@ describe("UpdateProduct Component", () => {
       );
     });
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
-    // formData.append("category", mockProduct.product.category._id);
     expect(axios.put).toHaveBeenCalledWith(
-      `/api/v1/product/update-product/${mockProduct.product._id}`,
+      `${API_URLS.UPDATE_PRODUCT}/${mockProduct.product._id}`,
       expect.any(FormData)
     );
-    // TODO: Fix this test
-    // const actualFormData = axios.put.mock.calls[0][1];
+    const actualFormData = axios.put.mock.calls[0][1];
     Object.keys(inputFormData).forEach((key) => {
-      // console.log(key, actualFormData.get(key));
-      // expect(actualFormData.get(key)).toBe(inputFormData[key]);
+      expect(actualFormData.get(key)).toBe(inputFormData[key]);
     });
   });
 
@@ -307,6 +319,7 @@ describe("UpdateProduct Component", () => {
       `/api/v1/product/update-product/${mockProduct.product._id}`,
       expect.any(FormData)
     );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it("should handle exception thrown during product update", async () => {
@@ -340,6 +353,7 @@ describe("UpdateProduct Component", () => {
       `/api/v1/product/update-product/${mockProduct.product._id}`,
       expect.any(FormData)
     );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it("should delete a product successfully", async () => {
@@ -374,34 +388,6 @@ describe("UpdateProduct Component", () => {
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
   });
 
-  it("should handle prompt cancel during product deletion", async () => {
-    window.prompt = jest.fn().mockReturnValue(null);
-    axios.get.mockImplementation((url) => {
-      if (url === GET_SINGLE_PRODUCT_URL) {
-        return Promise.resolve({ data: mockProduct });
-      } else if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      }
-    });
-
-    render(<UpdateProduct />);
-
-    // Wait for the product details to load and trigger the delete button click
-    await waitFor(() =>
-      expect(
-        screen.getByTestId("admin-update-product-name-input")
-      ).toHaveDisplayValue(mockProduct.product.name)
-    );
-    fireEvent.click(screen.getByTestId("admin-delete-product-button"));
-
-    await waitFor(() => {
-      expect(window.prompt).toHaveBeenCalled();
-    });
-    expect(axios.delete).not.toHaveBeenCalled();
-  });
-
   it("should handle failure during product deletion", async () => {
     window.prompt = jest.fn().mockReturnValue(true);
     const mockError = new Error("Failed to delete product");
@@ -431,34 +417,38 @@ describe("UpdateProduct Component", () => {
         UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ERROR
       );
     });
-    expect(axios.delete).toHaveBeenCalled();
+    expect(axios.delete).toHaveBeenCalledWith(
+      `/api/v1/product/delete-product/${mockProduct.product._id}`
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  // // TODO - Fix this test
-  // //   it("should handle shipping option change", async () => {
-  // //     axios.get.mockImplementation((url) => {
-  // //       if (url === GET_SINGLE_PRODUCT_URL) {
-  // //         return Promise.resolve({ data: mockProduct });
-  // //       } else if (url === GET_ALL_CATEGORIES_URL) {
-  // //         return Promise.resolve({
-  // //           data: { success: true, category: mockCategories },
-  // //         });
-  // //       }
-  // //     });
+  it("should handle prompt cancel during product deletion", async () => {
+    window.prompt = jest.fn().mockReturnValue(null);
+    axios.get.mockImplementation((url) => {
+      if (url === GET_SINGLE_PRODUCT_URL) {
+        return Promise.resolve({ data: mockProduct });
+      } else if (url === GET_ALL_CATEGORIES_URL) {
+        return Promise.resolve({
+          data: { success: true, category: mockCategories },
+        });
+      }
+    });
 
-  // //     render(<UpdateProduct />);
+    render(<UpdateProduct />);
 
-  // //     await screen.findByDisplayValue("Test Product");
-  // //     const selectElement = screen.getByRole("combobox");
-  // //     fireEvent.mouseDown(selectElement);
+    // Wait for the product details to load and trigger the delete button click
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("admin-update-product-name-input")
+      ).toHaveDisplayValue(mockProduct.product.name)
+    );
+    fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
-  // //     const optionElement = screen.getByText("Yes");
-  // //     fireEvent.click(optionElement);
-
-  // //     expect(selectElement).toHaveTextContent("Yes");
-
-  // //     // await waitFor(() => {
-  // //     //   expect(shippingSelect.value).toBe("1");
-  // //     // });
-  // //   });
+    await waitFor(() => {
+      expect(window.prompt).toHaveBeenCalled();
+    });
+    expect(axios.delete).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
 });
