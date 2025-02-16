@@ -111,6 +111,32 @@ describe("Category Product Page", () => {
     expect(moreDetailsButton.length).toBe(mockProducts.length);
   });
 
+  it("should render no products in Category Product page", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: {
+        products: [],
+        category: mockCategory,
+      },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/category/:slug"]}>
+        <Routes>
+          <Route path="/category/:slug" element={<CategoryProduct />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(new RegExp(`Category - ${mockCategory.name}`, "i"))
+      ).toBeInTheDocument();
+    });
+
+    const noProduct = screen.queryByRole("img");
+    expect(noProduct).not.toBeInTheDocument();
+  });
+
   it("should log error if failed to fetch products", async () => {
     const mockError = new Error("Failed to fetch products");
     axios.get = jest.fn().mockRejectedValueOnce(mockError);
