@@ -31,7 +31,12 @@ module.exports = {
     "client/src/**/*.{js, jsx}",
     "!client/src/_site/**",
     "!client/src/_markbind/**",
+    "!client/src/index.js",
+    "!client/src/reportWebVitals.js",
+    "!client/src/setupTests.js",
+    "!client/src/App.js",
   ],
+  coverageDirectory: "coverage/frontend",
   coverageThreshold: {
     global: {
       lines: 15,

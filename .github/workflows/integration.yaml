@@ -59,4 +59,5 @@ jobs:
             -Dsonar.projectKey=econ \
             -Dsonar.sources=. \
             -Dsonar.host.url=http://13.250.126.232 \
-            -Dsonar.token=squ_f7201e61c3e6601e639f92589d7be10d31ba8d89
+            -Dsonar.token=squ_f7201e61c3e6601e639f92589d7be10d31ba8d89 \
+            -Dsonar.javascript.lcov.reportPaths=coverage/**/lcov.info
