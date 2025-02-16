@@ -62,6 +62,7 @@ const renderWithRouter = (ui) => {
   return render(<BrowserRouter>{ui}</BrowserRouter>);
 };
 
+// 1 item -> bva to test for smallest non empty cart
 const mockCartItems = [
   {
     _id: "1",
@@ -69,14 +70,6 @@ const mockCartItems = [
     price: 100,
     quantity: 2,
     image: "product1.jpg",
-    description: "This is a product description",
-  },
-  {
-    _id: "2",
-    name: "Product 2",
-    price: 200,
-    quantity: 1,
-    image: "product2.jpg",
     description: "This is a product description",
   },
 ];
@@ -128,12 +121,79 @@ describe("Cart Page when user is authenticated", () => {
     expect(screen.getAllByRole("button", { name: "Remove" })).toHaveLength(
       mockCartItems.length
     );
+
+    expect(
+      screen.getByText(new RegExp(`Total.*${mockCartItems[0].price}`, "i"))
+    ).toBeInTheDocument();
   });
 
-  it("should display empty cart message if cart is empty", () => {
+  it("should display correct number of cart items for more than 1 item", () => {
+    // tests the sum logic for total price
+    const mockCartItems = [
+      {
+        _id: "1",
+        name: "Product 1",
+        price: 100,
+        quantity: 2,
+        image: "product1.jpg",
+        description: "This is a product description",
+      },
+      {
+        _id: "2",
+        name: "Product 2",
+        price: 200,
+        quantity: 1,
+        image: "product2.jpg",
+        description: "This is another product description",
+      },
+    ];
+    useCart.mockReturnValue([mockCartItems, jest.fn()]);
+
+    renderWithRouter(<CartPage />);
+
+    mockCartItems.forEach((item) => {
+      expect(screen.getByText(item.name)).toBeInTheDocument();
+      const productImage = screen.getByAltText(item.name);
+      expect(productImage).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByRole("button", { name: "Remove" })).toHaveLength(
+      mockCartItems.length
+    );
+
+    const mockTotal = mockCartItems.reduce((acc, item) => acc + item.price, 0);
+    expect(
+      screen.getByText(new RegExp(`Total.*${mockTotal}`, "i"))
+    ).toBeInTheDocument();
+  });
+
+  it("should display empty cart if cart is empty", () => {
     useCart.mockReturnValue([[], jest.fn()]);
     renderWithRouter(<CartPage />);
     expect(screen.getByText(/your cart is empty/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(`Total.*0.00`, "i"))
+    ).toBeInTheDocument();
+  });
+
+  it("should handle total price calcuation error if invalid price", async () => {
+    const mockCartItems = [
+      {
+        _id: "1",
+        name: "Product 1",
+        price: "invalid",
+        quantity: 2,
+        image: "product1.jpg",
+        description: "This is a product description",
+      },
+    ];
+    useCart.mockReturnValue([mockCartItems, jest.fn()]);
+
+    renderWithRouter(<CartPage />);
+
+    await waitFor(() => {
+      expect(consoleLogSpy).toHaveBeenCalled();
+    });
   });
 
   it("should navigate to update address page when update address button is clicked", () => {
@@ -187,25 +247,6 @@ describe("Cart Page when user is authenticated", () => {
     expect(setCart).toHaveBeenCalledTimes(1);
     expect(localStorage.setItem).not.toHaveBeenCalled();
     expect(consoleLogSpy).toHaveBeenCalled();
-  });
-
-  it("should calculate total price correctly", () => {
-    renderWithRouter(<CartPage />);
-    const mockTotal = mockCartItems.reduce((acc, item) => acc + item.price, 0);
-    expect(
-      screen.getByText(new RegExp(`Total.*${mockTotal}`, "i"))
-    ).toBeInTheDocument();
-  });
-
-  it("should handle total price calcuation error gracefully", () => {
-    const mockError = new Error("Failed to calculate total price");
-    const mockToLocaleString = jest.spyOn(Number.prototype, "toLocaleString");
-    mockToLocaleString.mockImplementation(() => {
-      throw mockError;
-    });
-
-    renderWithRouter(<CartPage />);
-    expect(consoleLogSpy).toHaveBeenCalledWith(mockError);
   });
 
   it("should not render payment gateway", () => {
@@ -369,7 +410,6 @@ describe("CartPage checkout process", () => {
         }
       );
     });
-
     expect(consoleLogSpy).toHaveBeenCalledWith(mockError);
     expect(toast.success).not.toHaveBeenCalled();
   });
