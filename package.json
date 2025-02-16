@@ -40,6 +40,7 @@
     "@babel/preset-react": "^7.24.1",
     "@playwright/test": "^1.44.0",
     "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.12.12",
     "babel-jest": "^29.7.0",
     "identity-obj-proxy": "^3.0.0",
@@ -48,8 +49,11 @@
     "sonarqube-scanner": "^3.3.0"
   },
   "jest": {
-  "coverageReporters": ["lcov", "text"],
-  "collectCoverage": true,
-  "coverageDirectory": "coverage"
-}
+    "coverageReporters": [
+      "lcov",
+      "text"
+    ],
+    "collectCoverage": true,
+    "coverageDirectory": "coverage"
+  }
 }
