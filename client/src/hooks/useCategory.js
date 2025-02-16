@@ -21,6 +21,5 @@ export default function useCategory() {
     getCategories();
   }, []);
 
-  // TODO Update all old usages of this hook to use the new return value
   return [categories, refreshCategories];
 }
