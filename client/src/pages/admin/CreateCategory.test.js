@@ -10,7 +10,10 @@ import {
 import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
 
-import CreateCategory, { CREATE_CATEGORY_STRINGS } from "./CreateCategory";
+import CreateCategory, {
+  API_URLS,
+  CREATE_CATEGORY_STRINGS,
+} from "./CreateCategory";
 
 // Mock dependencies
 jest.mock("axios");
@@ -67,7 +70,7 @@ describe("CreateCategory Component", () => {
         )
       ).toHaveLength(mockCategories.length)
     );
-    expect(axios.get).toHaveBeenCalled();
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should display error when fetching categories fails", async () => {
@@ -84,6 +87,7 @@ describe("CreateCategory Component", () => {
         /create-category-/
       )
     ).toHaveLength(0);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should display error when fetching categories throws exception", async () => {
@@ -100,6 +104,7 @@ describe("CreateCategory Component", () => {
         /create-category-/
       )
     ).toHaveLength(0);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should create a new category and display success message", async () => {
@@ -120,8 +125,9 @@ describe("CreateCategory Component", () => {
     );
 
     // Create a new category
+    const newCategory = "New Category";
     const input = screen.getByTestId("category-input");
-    fireEvent.change(input, { target: { value: "New Category" } });
+    fireEvent.change(input, { target: { value: newCategory } });
     fireEvent.click(screen.getByTestId("submit-button"));
 
     await waitFor(() =>
@@ -129,11 +135,11 @@ describe("CreateCategory Component", () => {
         CREATE_CATEGORY_STRINGS.CATEGORY_CREATED
       )
     );
-    expect(axios.post).toHaveBeenCalledWith(
-      "/api/v1/category/create-category",
-      { name: "New Category" }
-    );
+    expect(axios.post).toHaveBeenCalledWith(API_URLS.CREATE_CATEGORY, {
+      name: newCategory,
+    });
     expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should display error when category creation fails", async () => {
@@ -153,13 +159,22 @@ describe("CreateCategory Component", () => {
       ).toHaveLength(mockCategories.length)
     );
 
+    // Create a new category
+    const newCategory = "New Category";
+    const input = screen.getByTestId("category-input");
+    fireEvent.change(input, { target: { value: newCategory } });
     fireEvent.click(screen.getByTestId("submit-button"));
+
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR
       )
     );
+    expect(axios.post).toHaveBeenCalledWith(API_URLS.CREATE_CATEGORY, {
+      name: newCategory,
+    });
     expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should display error when category creation throws exception", async () => {
@@ -179,12 +194,20 @@ describe("CreateCategory Component", () => {
       ).toHaveLength(mockCategories.length)
     );
 
+    // Create a new category
+    const newCategory = "New Category";
+    const input = screen.getByTestId("category-input");
+    fireEvent.change(input, { target: { value: newCategory } });
     fireEvent.click(screen.getByTestId("submit-button"));
+
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR
       )
     );
+    expect(axios.post).toHaveBeenCalledWith(API_URLS.CREATE_CATEGORY, {
+      name: newCategory,
+    });
     expect(axios.get).toHaveBeenCalledTimes(2);
   });
 
@@ -214,9 +237,10 @@ describe("CreateCategory Component", () => {
       )
     );
     expect(axios.delete).toHaveBeenCalledWith(
-      `/api/v1/category/delete-category/${id}`
+      `${API_URLS.DELETE_CATEGORY}/${id}`
     );
     expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should display error when category deletion fails", async () => {
@@ -245,9 +269,10 @@ describe("CreateCategory Component", () => {
       )
     );
     expect(axios.delete).toHaveBeenCalledWith(
-      `/api/v1/category/delete-category/${id}`
+      `${API_URLS.DELETE_CATEGORY}/${id}`
     );
     expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should display error when category deletion throws exception", async () => {
@@ -276,9 +301,10 @@ describe("CreateCategory Component", () => {
       )
     );
     expect(axios.delete).toHaveBeenCalledWith(
-      `/api/v1/category/delete-category/${id}`
+      `${API_URLS.DELETE_CATEGORY}/${id}`
     );
     expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should update a category and display success message", async () => {
@@ -311,10 +337,11 @@ describe("CreateCategory Component", () => {
       )
     );
     expect(axios.put).toHaveBeenCalledWith(
-      `/api/v1/category/update-category/${id}`,
+      `${API_URLS.UPDATE_CATEGORY}/${id}`,
       { name: "Updated Category" }
     );
     expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should display error when category update fails", async () => {
@@ -347,10 +374,11 @@ describe("CreateCategory Component", () => {
       )
     );
     expect(axios.put).toHaveBeenCalledWith(
-      `/api/v1/category/update-category/${id}`,
+      `${API_URLS.UPDATE_CATEGORY}/${id}`,
       { name: "Updated Category" }
     );
     expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should display error when category update throws exception", async () => {
@@ -383,10 +411,11 @@ describe("CreateCategory Component", () => {
       )
     );
     expect(axios.put).toHaveBeenCalledWith(
-      `/api/v1/category/update-category/${id}`,
+      `${API_URLS.UPDATE_CATEGORY}/${id}`,
       { name: "Updated Category" }
     );
     expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should cancel modal", async () => {
@@ -410,5 +439,6 @@ describe("CreateCategory Component", () => {
 
     expect(axios.put).not.toHaveBeenCalled();
     expect(axios.get).toHaveBeenCalledTimes(1);
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 });

@@ -106,7 +106,8 @@ const UpdateProduct = () => {
       productData.append("quantity", quantity);
       photo && productData.append("photo", photo);
       productData.append("category", category);
-      const { data } = axios.put(
+      productData.append("shipping", shipping);
+      const { data } = await axios.put(
         `${API_URLS.UPDATE_PRODUCT}/${id}`,
         productData
       );
@@ -168,21 +169,19 @@ const UpdateProduct = () => {
                 ))}
               </Select>
               <div className="mb-3">
-                <label
-                  className="btn btn-outline-secondary col-md-12"
-                  data-testid="admin-upload-photo-button"
-                >
+                <label className="btn btn-outline-secondary col-md-12">
                   {photo
                     ? photo.name
                     : UPDATE_PRODUCT_STRINGS.UPLOAD_PHOTO_ACTION}
-                  <input
-                    type="file"
-                    name="photo"
-                    accept="image/*"
-                    onChange={(e) => setPhoto(e.target.files[0])}
-                    hidden
-                  />
                 </label>
+                <input
+                  type="file"
+                  name="photo"
+                  accept="image/*"
+                  onChange={(e) => setPhoto(e.target.files[0])}
+                  data-testid="admin-update-product-photo-input"
+                  hidden
+                />
               </div>
               <div className="mb-3">
                 {photo ? (
