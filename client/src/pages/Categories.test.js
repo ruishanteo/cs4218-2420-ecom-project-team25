@@ -19,6 +19,10 @@ jest.mock("../context/auth", () => ({
   useAuth: jest.fn(() => [null, jest.fn()]), // Mock useAuth hook to return null state and a mock function for setAuth
 }));
 
+jest.mock("../components/Layout", () => ({ children }) => (
+  <div data-testid="layout">{children}</div>
+));
+
 // ensure react router context is available
 const renderWithRouter = (ui) => {
   return render(<BrowserRouter>{ui}</BrowserRouter>);
@@ -44,5 +48,14 @@ describe("Categories Page", () => {
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute("href", `/category/${category.slug}`);
     });
+  });
+
+  it("should not render categories in Category page", () => {
+    useCategory.mockReturnValueOnce([]);
+
+    render(<Categories />);
+
+    const noCategory = screen.queryByRole("link");
+    expect(noCategory).not.toBeInTheDocument();
   });
 });
