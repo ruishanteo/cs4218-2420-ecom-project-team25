@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Layout from "./../../components/Layout";
 import AdminMenu from "./../../components/AdminMenu";
 import toast from "react-hot-toast";
 import axios from "axios";
 import CategoryForm from "../../components/Form/CategoryForm";
 import { Modal } from "antd";
+import useCategory from "../../hooks/useCategory";
 
 export const CREATE_CATEGORY_STRINGS = {
   CREATE_CATEGORY_ACTION: "Create Category",
@@ -12,7 +13,6 @@ export const CREATE_CATEGORY_STRINGS = {
   DELETE_CATEGORY_ACTION: "Delete",
 
   CREATE_CATEGORY_ERROR: "Something went wrong in creating category",
-  FETCH_CATEGORY_ERROR: "Something went wrong in getting category",
   UPDATE_CATEGORY_ERROR: "Something went wrong in updating category",
   DELETE_CATEGORY_ERROR: "Something went wrong in deleting category",
 
@@ -23,13 +23,12 @@ export const CREATE_CATEGORY_STRINGS = {
 
 export const API_URLS = {
   CREATE_CATEGORY: "/api/v1/category/create-category",
-  GET_CATEGORIES: "/api/v1/category/get-category",
   UPDATE_CATEGORY: "/api/v1/category/update-category",
   DELETE_CATEGORY: "/api/v1/category/delete-category",
 };
 
 const CreateCategory = () => {
-  const [categories, setCategories] = useState([]);
+  const [categories, refreshCategories] = useCategory();
   const [name, setName] = useState("");
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -50,26 +49,8 @@ const CreateCategory = () => {
       toast.error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
       console.log(error);
     }
-    getAllCategory();
+    refreshCategories();
   };
-
-  const getAllCategory = async () => {
-    try {
-      const { data } = await axios.get(API_URLS.GET_CATEGORIES);
-      if (data.success) {
-        setCategories(data.category);
-      } else {
-        throw new Error("Error in getting category");
-      }
-    } catch (error) {
-      toast.error(CREATE_CATEGORY_STRINGS.FETCH_CATEGORY_ERROR);
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    getAllCategory();
-  }, []);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -89,7 +70,7 @@ const CreateCategory = () => {
     } catch (error) {
       toast.error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
     }
-    getAllCategory();
+    refreshCategories();
   };
 
   const handleDelete = async (pId) => {
@@ -103,7 +84,7 @@ const CreateCategory = () => {
     } catch (error) {
       toast.error(CREATE_CATEGORY_STRINGS.DELETE_CATEGORY_ERROR);
     }
-    getAllCategory();
+    refreshCategories();
   };
 
   return (
@@ -132,7 +113,7 @@ const CreateCategory = () => {
                 </thead>
                 <tbody data-testid="create-category-list">
                   {categories?.map((c) => (
-                    <tr key={c._id} data-testid={`create-category-${c._id}`}>
+                    <tr key={c._id}>
                       <td>{c.name}</td>
                       <td>
                         <button

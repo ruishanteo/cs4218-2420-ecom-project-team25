@@ -14,6 +14,7 @@ import CreateCategory, {
   API_URLS,
   CREATE_CATEGORY_STRINGS,
 } from "./CreateCategory";
+import useCategory from "../../hooks/useCategory";
 
 // Mock dependencies
 jest.mock("axios");
@@ -21,6 +22,11 @@ jest.mock("axios");
 jest.mock("react-hot-toast", () => ({
   error: jest.fn(),
   success: jest.fn(),
+}));
+
+jest.mock("../../hooks/useCategory", () => ({
+  __esModule: true,
+  default: jest.fn(() => [[], jest.fn()]),
 }));
 
 jest.mock("../../components/Layout", () => ({ children }) => (
@@ -51,78 +57,17 @@ jest.mock(
 
 describe("CreateCategory Component", () => {
   const mockCategories = [{ _id: "1", name: "Electronics" }];
+  const mockRefreshCategories = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it("should fetch and display categories", async () => {
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
-
-    render(<CreateCategory />);
-
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
-  });
-
-  it("should display error when fetching categories fails", async () => {
-    axios.get.mockResolvedValueOnce({ data: { success: false } });
-    render(<CreateCategory />);
-
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith(
-        CREATE_CATEGORY_STRINGS.FETCH_CATEGORY_ERROR
-      )
-    );
-    expect(
-      within(screen.getByTestId("create-category-list")).queryAllByTestId(
-        /create-category-/
-      )
-    ).toHaveLength(0);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
-  });
-
-  it("should display error when fetching categories throws exception", async () => {
-    axios.get.mockRejectedValueOnce(new Error("Fetch failed"));
-    render(<CreateCategory />);
-
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith(
-        CREATE_CATEGORY_STRINGS.FETCH_CATEGORY_ERROR
-      )
-    );
-    expect(
-      within(screen.getByTestId("create-category-list")).queryAllByTestId(
-        /create-category-/
-      )
-    ).toHaveLength(0);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    useCategory.mockReturnValue([mockCategories, mockRefreshCategories]);
   });
 
   it("should create a new category and display success message", async () => {
     axios.post.mockResolvedValueOnce({ data: { success: true } });
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
 
     render(<CreateCategory />);
-
-    // Wait for categories to be displayed
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     // Create a new category
     const newCategory = "New Category";
@@ -138,26 +83,13 @@ describe("CreateCategory Component", () => {
     expect(axios.post).toHaveBeenCalledWith(API_URLS.CREATE_CATEGORY, {
       name: newCategory,
     });
-    expect(axios.get).toHaveBeenCalledTimes(2);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
   it("should display error when category creation fails", async () => {
     axios.post.mockResolvedValueOnce({ data: { success: false } });
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
 
     render(<CreateCategory />);
-
-    // Wait for categories to be displayed
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     // Create a new category
     const newCategory = "New Category";
@@ -173,26 +105,13 @@ describe("CreateCategory Component", () => {
     expect(axios.post).toHaveBeenCalledWith(API_URLS.CREATE_CATEGORY, {
       name: newCategory,
     });
-    expect(axios.get).toHaveBeenCalledTimes(2);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
   it("should display error when category creation throws exception", async () => {
     axios.post.mockRejectedValueOnce(new Error("Creation failed"));
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
 
     render(<CreateCategory />);
-
-    // Wait for categories to be displayed
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     // Create a new category
     const newCategory = "New Category";
@@ -208,25 +127,13 @@ describe("CreateCategory Component", () => {
     expect(axios.post).toHaveBeenCalledWith(API_URLS.CREATE_CATEGORY, {
       name: newCategory,
     });
-    expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
   it("should delete a category and display success message", async () => {
     axios.delete.mockResolvedValueOnce({ data: { success: true } });
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
 
     render(<CreateCategory />);
-
-    // Wait for categories to be displayed
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     const id = mockCategories[0]._id;
     fireEvent.click(screen.getByTestId(`delete-category-${id}`));
@@ -239,26 +146,13 @@ describe("CreateCategory Component", () => {
     expect(axios.delete).toHaveBeenCalledWith(
       `${API_URLS.DELETE_CATEGORY}/${id}`
     );
-    expect(axios.get).toHaveBeenCalledTimes(2);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
   it("should display error when category deletion fails", async () => {
     axios.delete.mockResolvedValueOnce({ data: { success: false } });
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
 
     render(<CreateCategory />);
-
-    // Wait for categories to be displayed
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     const id = mockCategories[0]._id;
     fireEvent.click(screen.getByTestId(`delete-category-${id}`));
@@ -271,26 +165,13 @@ describe("CreateCategory Component", () => {
     expect(axios.delete).toHaveBeenCalledWith(
       `${API_URLS.DELETE_CATEGORY}/${id}`
     );
-    expect(axios.get).toHaveBeenCalledTimes(2);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
   it("should display error when category deletion throws exception", async () => {
     axios.delete.mockRejectedValueOnce(new Error("Deletion failed"));
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
 
     render(<CreateCategory />);
-
-    // Wait for categories to be displayed
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     const id = mockCategories[0]._id;
     fireEvent.click(screen.getByTestId(`delete-category-${id}`));
@@ -303,25 +184,13 @@ describe("CreateCategory Component", () => {
     expect(axios.delete).toHaveBeenCalledWith(
       `${API_URLS.DELETE_CATEGORY}/${id}`
     );
-    expect(axios.get).toHaveBeenCalledTimes(2);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
   it("should update a category and display success message", async () => {
     axios.put.mockResolvedValueOnce({ data: { success: true } });
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
 
     render(<CreateCategory />);
-
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     const id = mockCategories[0]._id;
     fireEvent.click(screen.getByTestId(`update-category-${id}`));
@@ -340,25 +209,12 @@ describe("CreateCategory Component", () => {
       `${API_URLS.UPDATE_CATEGORY}/${id}`,
       { name: "Updated Category" }
     );
-    expect(axios.get).toHaveBeenCalledTimes(2);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
   it("should display error when category update fails", async () => {
     axios.put.mockResolvedValueOnce({ data: { success: false } });
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
-
     render(<CreateCategory />);
-
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     const id = mockCategories[0]._id;
     fireEvent.click(screen.getByTestId(`update-category-${id}`));
@@ -377,25 +233,13 @@ describe("CreateCategory Component", () => {
       `${API_URLS.UPDATE_CATEGORY}/${id}`,
       { name: "Updated Category" }
     );
-    expect(axios.get).toHaveBeenCalledTimes(2);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
   it("should display error when category update throws exception", async () => {
     axios.put.mockRejectedValueOnce(new Error("Update failed"));
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
 
     render(<CreateCategory />);
-
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     const id = mockCategories[0]._id;
     fireEvent.click(screen.getByTestId(`update-category-${id}`));
@@ -414,31 +258,17 @@ describe("CreateCategory Component", () => {
       `${API_URLS.UPDATE_CATEGORY}/${id}`,
       { name: "Updated Category" }
     );
-    expect(axios.get).toHaveBeenCalledTimes(2);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
   it("should cancel modal", async () => {
-    axios.get.mockResolvedValueOnce({
-      data: { success: true, category: mockCategories },
-    });
-
     render(<CreateCategory />);
-
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
 
     const id = mockCategories[0]._id;
     fireEvent.click(screen.getByTestId(`update-category-${id}`));
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
     expect(axios.put).not.toHaveBeenCalled();
-    expect(axios.get).toHaveBeenCalledTimes(1);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
+    expect(mockRefreshCategories).not.toHaveBeenCalled();
   });
 });

@@ -4,7 +4,6 @@ import axios from "axios";
 export default function useCategory() {
   const [categories, setCategories] = useState([]);
 
-  //get cat
   const getCategories = async () => {
     try {
       const { data } = await axios.get("/api/v1/category/get-category");
@@ -14,9 +13,14 @@ export default function useCategory() {
     }
   };
 
+  const refreshCategories = () => {
+    getCategories();
+  };
+
   useEffect(() => {
     getCategories();
   }, []);
 
-  return categories;
+  // TODO Update all old usages of this hook to use the new return value
+  return [categories, refreshCategories];
 }

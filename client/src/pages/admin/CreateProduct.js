@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Layout from "./../../components/Layout";
 import AdminMenu from "./../../components/AdminMenu";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { Select } from "antd";
 import { useNavigate } from "react-router-dom";
+import useCategory from "../../hooks/useCategory";
 
 const { Option } = Select;
 
@@ -32,12 +33,11 @@ export const CREATE_PRODUCT_STRINGS = {
 
 export const API_URLS = {
   CREATE_PRODUCT: "/api/v1/product/create-product",
-  GET_CATEGORIES: "/api/v1/category/get-category",
 };
 
 const CreateProduct = () => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
+  const [categories] = useCategory();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -45,23 +45,6 @@ const CreateProduct = () => {
   const [quantity, setQuantity] = useState("");
   const [shipping, setShipping] = useState("");
   const [photo, setPhoto] = useState("");
-
-  useEffect(() => {
-    const getAllCategory = async () => {
-      try {
-        const { data } = await axios.get(API_URLS.GET_CATEGORIES);
-        if (data?.success) {
-          setCategories(data?.category);
-        } else {
-          throw new Error("Error in getting category");
-        }
-      } catch (error) {
-        toast.error(CREATE_PRODUCT_STRINGS.FETCH_CATEGORY_ERROR);
-        console.log(error);
-      }
-    };
-    getAllCategory();
-  }, []);
 
   const handleCreate = async (e) => {
     e.preventDefault();
