@@ -1,12 +1,14 @@
-import { useState, useContext, createContext, useEffect } from "react";
+import React, { useState, useContext, createContext, useEffect } from "react";
 
 const CartContext = createContext();
 const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
 
   useEffect(() => {
-    let existingCartItem = localStorage.getItem("cart");
-    if (existingCartItem) setCart(JSON.parse(existingCartItem));
+    const existingCartItem = localStorage.getItem("cart");
+    if (existingCartItem) {
+      setCart(JSON.parse(existingCartItem));
+    }
   }, []);
 
   return (
@@ -16,7 +18,6 @@ const CartProvider = ({ children }) => {
   );
 };
 
-// custom hook
 const useCart = () => useContext(CartContext);
 
 export { useCart, CartProvider };
