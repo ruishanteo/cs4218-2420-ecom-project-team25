@@ -16,6 +16,7 @@ import UpdateProduct, {
   UPDATE_PRODUCT_STRINGS,
   API_URLS,
 } from "./UpdateProduct";
+import useCategory from "../../hooks/useCategory";
 
 // Mock dependencies
 jest.mock("axios");
@@ -60,6 +61,11 @@ jest.mock("antd", () => {
   };
 });
 
+jest.mock("../../hooks/useCategory", () => ({
+  __esModule: true,
+  default: jest.fn(() => [[], jest.fn()]),
+}));
+
 jest.mock("../../components/Layout", () => ({ children }) => (
   <div data-testid="layout">{children}</div>
 ));
@@ -94,25 +100,16 @@ describe("UpdateProduct Component", () => {
   ];
 
   const GET_SINGLE_PRODUCT_URL = `${API_URLS.GET_PRODUCT}/${mockParams.slug}`;
-  const GET_ALL_CATEGORIES_URL = API_URLS.GET_CATEGORIES;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    useCategory.mockReturnValue([mockCategories, jest.fn()]);
     useNavigate.mockReturnValue(mockNavigate);
     useParams.mockReturnValue(mockParams);
   });
 
   it("should fetch and display product details", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url === GET_SINGLE_PRODUCT_URL) {
-        return Promise.resolve({ data: mockProduct });
-      }
-      if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      }
-    });
+    axios.get.mockResolvedValueOnce({ data: mockProduct });
 
     render(<UpdateProduct />);
 
@@ -131,22 +128,11 @@ describe("UpdateProduct Component", () => {
     expect(
       screen.getByTestId("admin-update-product-quantity-input")
     ).toHaveDisplayValue(mockProduct.product.quantity.toString());
-    expect(axios.get).toHaveBeenCalledTimes(2);
     expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
-    expect(axios.get).toHaveBeenCalledWith(GET_ALL_CATEGORIES_URL);
   });
 
   it("should handle failure while fetching product details", async () => {
-    const mockError = new Error("Failed to fetch product");
-    axios.get.mockImplementation((url) => {
-      if (url === GET_SINGLE_PRODUCT_URL) {
-        return Promise.reject(mockError);
-      } else if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      }
-    });
+    axios.get.mockRejectedValueOnce(new Error("Failed to fetch product"));
 
     render(<UpdateProduct />);
 
@@ -155,47 +141,7 @@ describe("UpdateProduct Component", () => {
         UPDATE_PRODUCT_STRINGS.FETCH_PRODUCT_ERROR
       );
     });
-    expect(axios.get).toHaveBeenCalledTimes(2);
     expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
-    expect(axios.get).toHaveBeenCalledWith(GET_ALL_CATEGORIES_URL);
-  });
-
-  it("should handle failure while fetching categories", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({ data: { success: false } });
-      }
-      return Promise.resolve({ data: mockProduct });
-    });
-
-    render(<UpdateProduct />);
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        UPDATE_PRODUCT_STRINGS.FETCH_CATEGORY_ERROR
-      );
-    });
-    expect(axios.get).toHaveBeenCalledTimes(2);
-    expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
-    expect(axios.get).toHaveBeenCalledWith(GET_ALL_CATEGORIES_URL);
-  });
-
-  it("should handle exception thrown while fetching categories", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.reject(new Error("Failed to fetch categories"));
-      }
-      return Promise.resolve({ data: mockProduct });
-    });
-
-    render(<UpdateProduct />);
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith(
-        UPDATE_PRODUCT_STRINGS.FETCH_CATEGORY_ERROR
-      );
-    });
-    expect(axios.get).toHaveBeenCalledTimes(2);
   });
 
   it("should update the product successfully", async () => {
@@ -212,18 +158,8 @@ describe("UpdateProduct Component", () => {
     };
     const user = userEvent.setup();
     URL.createObjectURL = jest.fn().mockReturnValue("test-url");
-    axios.get.mockImplementation((url) => {
-      if (url === GET_SINGLE_PRODUCT_URL) {
-        return Promise.resolve({ data: mockProduct });
-      } else if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      }
-    });
-    axios.put.mockImplementation((_, __) => ({
-      data: { success: true },
-    }));
+    axios.get.mockResolvedValueOnce({ data: mockProduct });
+    axios.put.mockResolvedValueOnce({ data: { success: true } });
 
     render(<UpdateProduct />);
 
@@ -287,18 +223,8 @@ describe("UpdateProduct Component", () => {
   });
 
   it("should handle failure during product update", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url === GET_SINGLE_PRODUCT_URL) {
-        return Promise.resolve({ data: mockProduct });
-      } else if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      }
-    });
-    axios.put.mockImplementation((url, data) => ({
-      data: { success: false, message: "Failed to update product" },
-    }));
+    axios.get.mockResolvedValueOnce({ data: mockProduct });
+    axios.put.mockResolvedValueOnce({ data: { success: false } });
 
     render(<UpdateProduct />);
 
@@ -316,23 +242,15 @@ describe("UpdateProduct Component", () => {
       );
     });
     expect(axios.put).toHaveBeenCalledWith(
-      `/api/v1/product/update-product/${mockProduct.product._id}`,
+      `${API_URLS.UPDATE_PRODUCT}/${mockProduct.product._id}`,
       expect.any(FormData)
     );
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it("should handle exception thrown during product update", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url === GET_SINGLE_PRODUCT_URL) {
-        return Promise.resolve({ data: mockProduct });
-      } else if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      }
-    });
-    axios.put.mockImplementation(() => null);
+    axios.get.mockResolvedValueOnce({ data: mockProduct });
+    axios.put.mockRejectedValueOnce(new Error("Failed to update product"));
 
     render(<UpdateProduct />);
 
@@ -358,16 +276,8 @@ describe("UpdateProduct Component", () => {
 
   it("should delete a product successfully", async () => {
     window.prompt = jest.fn().mockReturnValue(true);
-    axios.get.mockImplementation((url) => {
-      if (url === GET_SINGLE_PRODUCT_URL) {
-        return Promise.resolve({ data: mockProduct });
-      } else if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      }
-    });
-    axios.delete.mockResolvedValueOnce({ data: {} });
+    axios.get.mockResolvedValueOnce({ data: mockProduct });
+    axios.delete.mockResolvedValueOnce({});
 
     render(<UpdateProduct />);
 
@@ -390,17 +300,8 @@ describe("UpdateProduct Component", () => {
 
   it("should handle failure during product deletion", async () => {
     window.prompt = jest.fn().mockReturnValue(true);
-    const mockError = new Error("Failed to delete product");
-    axios.get.mockImplementation((url) => {
-      if (url === GET_SINGLE_PRODUCT_URL) {
-        return Promise.resolve({ data: mockProduct });
-      } else if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      }
-    });
-    axios.delete.mockRejectedValueOnce(mockError);
+    axios.get.mockResolvedValueOnce({ data: mockProduct });
+    axios.delete.mockRejectedValueOnce(new Error("Failed to delete product"));
 
     render(<UpdateProduct />);
 
@@ -418,22 +319,14 @@ describe("UpdateProduct Component", () => {
       );
     });
     expect(axios.delete).toHaveBeenCalledWith(
-      `/api/v1/product/delete-product/${mockProduct.product._id}`
+      `${API_URLS.DELETE_PRODUCT}/${mockProduct.product._id}`
     );
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it("should handle prompt cancel during product deletion", async () => {
     window.prompt = jest.fn().mockReturnValue(null);
-    axios.get.mockImplementation((url) => {
-      if (url === GET_SINGLE_PRODUCT_URL) {
-        return Promise.resolve({ data: mockProduct });
-      } else if (url === GET_ALL_CATEGORIES_URL) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      }
-    });
+    axios.get.mockResolvedValueOnce({ data: mockProduct });
 
     render(<UpdateProduct />);
 

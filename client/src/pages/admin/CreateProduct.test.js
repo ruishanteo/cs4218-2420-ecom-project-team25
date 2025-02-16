@@ -7,7 +7,6 @@ import {
   screen,
   fireEvent,
   waitFor,
-  within,
 } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import "@testing-library/jest-dom/extend-expect";
@@ -17,6 +16,7 @@ import CreateProduct, {
   CREATE_PRODUCT_STRINGS,
   API_URLS,
 } from "./CreateProduct";
+import useCategory from "../../hooks/useCategory";
 
 // Mock dependencies
 jest.mock("axios");
@@ -48,6 +48,11 @@ jest.mock("antd", () => {
   return { ...actualAntd, Select: MockSelect };
 });
 
+jest.mock("../../hooks/useCategory", () => ({
+  __esModule: true,
+  default: jest.fn(() => [[], jest.fn()]),
+}));
+
 jest.mock("../../components/Layout", () => ({ children }) => (
   <div data-testid="layout">{children}</div>
 ));
@@ -62,60 +67,8 @@ describe("CreateProduct Component", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    useCategory.mockReturnValue([mockCategories, jest.fn()]);
     useNavigate.mockReturnValue(mockNavigate);
-  });
-
-  it("should fetch categories on mount", async () => {
-    axios.get.mockResolvedValue({
-      data: { success: true, category: mockCategories },
-    });
-
-    render(<CreateProduct />);
-
-    await waitFor(() =>
-      expect(
-        within(
-          screen.getByTestId("create-product-category-select")
-        ).queryAllByTestId(/create-product-option/)
-      ).toHaveLength(mockCategories.length)
-    );
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
-  });
-
-  it("should show error toast if fetching categories fails", async () => {
-    axios.get.mockResolvedValue({ data: { success: false } });
-
-    render(<CreateProduct />);
-
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith(
-        CREATE_PRODUCT_STRINGS.FETCH_CATEGORY_ERROR
-      )
-    );
-    expect(
-      within(
-        screen.getByTestId("create-product-category-select")
-      ).queryAllByTestId(/create-product-option/)
-    ).toHaveLength(0);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
-  });
-
-  it("should show error toast if fetching categories throws exception", async () => {
-    axios.get.mockRejectedValue(new Error("Fetch error"));
-
-    render(<CreateProduct />);
-
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith(
-        CREATE_PRODUCT_STRINGS.FETCH_CATEGORY_ERROR
-      )
-    );
-    expect(
-      within(
-        screen.getByTestId("create-product-category-select")
-      ).queryAllByTestId(/create-product-option/)
-    ).toHaveLength(0);
-    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_CATEGORIES);
   });
 
   it("should update input fields and create a product", async () => {
@@ -132,21 +85,9 @@ describe("CreateProduct Component", () => {
       shipping: "false",
     };
     URL.createObjectURL = jest.fn().mockReturnValue("test-url");
-    axios.get.mockResolvedValue({
-      data: { success: true, category: mockCategories },
-    });
     axios.post.mockResolvedValue({ data: { success: true } });
 
     render(<CreateProduct />);
-
-    // Wait for categories to be displayed
-    await waitFor(() =>
-      expect(
-        within(
-          screen.getByTestId("create-product-category-select")
-        ).queryAllByTestId(/create-product-option/)
-      ).toHaveLength(mockCategories.length)
-    );
 
     // Fill form and submit
     fireEvent.change(screen.getByTestId("create-product-name-input"), {
@@ -193,9 +134,6 @@ describe("CreateProduct Component", () => {
   });
 
   it("should handle product creation failure", async () => {
-    axios.get.mockResolvedValue({
-      data: { success: true, category: mockCategories },
-    });
     axios.post.mockResolvedValue({ data: { success: false } });
 
     render(<CreateProduct />);
@@ -214,9 +152,6 @@ describe("CreateProduct Component", () => {
   });
 
   it("should handle product creation throws exception", async () => {
-    axios.get.mockResolvedValue({
-      data: { success: true, category: mockCategories },
-    });
     axios.post.mockRejectedValue(new Error("Create error"));
 
     render(<CreateProduct />);

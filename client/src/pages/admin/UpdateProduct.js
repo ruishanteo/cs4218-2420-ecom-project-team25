@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { Select } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
+import useCategory from "../../hooks/useCategory";
 const { Option } = Select;
 
 export const UPDATE_PRODUCT_STRINGS = {
@@ -24,7 +25,6 @@ export const UPDATE_PRODUCT_STRINGS = {
   PRODUCT_QUANTITY_PLACEHOLDER: "write a quantity",
 
   FETCH_PRODUCT_ERROR: "Something went wrong in getting product",
-  FETCH_CATEGORY_ERROR: "Something went wrong in getting category",
   UPDATE_PRODUCT_ERROR: "Something went wrong in updating product",
   DELETE_PRODUCT_ERROR: "Something went wrong in deleting product",
 
@@ -34,7 +34,6 @@ export const UPDATE_PRODUCT_STRINGS = {
 
 export const API_URLS = {
   GET_PRODUCT: "/api/v1/product/get-product",
-  GET_CATEGORIES: "/api/v1/category/get-category",
   UPDATE_PRODUCT: "/api/v1/product/update-product",
   DELETE_PRODUCT: "/api/v1/product/delete-product",
   GET_PRODUCT_PHOTO: "/api/v1/product/product-photo",
@@ -43,7 +42,7 @@ export const API_URLS = {
 const UpdateProduct = () => {
   const navigate = useNavigate();
   const params = useParams();
-  const [categories, setCategories] = useState([]);
+  const [categories] = useCategory();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -76,25 +75,6 @@ const UpdateProduct = () => {
 
     getSingleProduct();
   }, [params.slug]);
-
-  // Fetch all categories on component mount
-  useEffect(() => {
-    const getAllCategory = async () => {
-      try {
-        const { data } = await axios.get(API_URLS.GET_CATEGORIES);
-        if (!data?.success) {
-          throw new Error("Error in getting category");
-        }
-
-        setCategories(data?.category);
-      } catch (error) {
-        console.log(error);
-        toast.error(UPDATE_PRODUCT_STRINGS.FETCH_CATEGORY_ERROR);
-      }
-    };
-
-    getAllCategory();
-  }, []);
 
   // Create product function
   const handleUpdate = async (e) => {
