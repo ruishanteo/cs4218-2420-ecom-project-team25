@@ -1,7 +1,7 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 import axios from "axios";
 
-import useCategory from "./useCategory";
+import useCategory, { USE_CATEGORY_STRINGS } from "./useCategory";
 
 jest.mock("axios");
 
@@ -29,7 +29,9 @@ describe("useCategory Hook", () => {
       { _id: "1", name: "Category 1" },
       { _id: "2", name: "Category 2" },
     ];
-    axios.get.mockResolvedValueOnce({ data: { category: mockCategories } });
+    axios.get.mockResolvedValueOnce({
+      data: { category: mockCategories, success: true },
+    }); // Simulate a successful API call
 
     const { result } = renderHook(() => useCategory());
 
@@ -41,8 +43,23 @@ describe("useCategory Hook", () => {
   });
 
   it("should handle API failure gracefully", async () => {
+    axios.get.mockResolvedValueOnce({ data: { success: false } }); // Simulate API failure
+
+    const { result } = renderHook(() => useCategory());
+
+    await waitFor(() => {
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        new Error(USE_CATEGORY_STRINGS.ERROR)
+      );
+    });
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+    expect(result.current[0]).toEqual([]); // Should remain an empty array on failure
+  });
+
+  it("should handle exception thrown gracefully", async () => {
     const mockError = new Error("Failed to fetch categories");
-    axios.get.mockRejectedValueOnce(mockError);
+    axios.get.mockRejectedValueOnce(mockError); // Simulate an exception
 
     const { result } = renderHook(() => useCategory());
 
@@ -61,7 +78,9 @@ describe("useCategory Hook", () => {
       { _id: "3", name: "Updated Category 2" },
     ];
 
-    axios.get.mockResolvedValueOnce({ data: { category: initialCategories } });
+    axios.get.mockResolvedValueOnce({
+      data: { category: initialCategories, success: true },
+    });
 
     // result is an array with two values: [categories, refreshCategories]
     const { result } = renderHook(() => useCategory());
@@ -70,7 +89,9 @@ describe("useCategory Hook", () => {
       expect(result.current[0]).toEqual(initialCategories);
     });
 
-    axios.get.mockResolvedValueOnce({ data: { category: updatedCategories } });
+    axios.get.mockResolvedValueOnce({
+      data: { category: updatedCategories, success: true },
+    });
 
     act(() => {
       result.current[1]();

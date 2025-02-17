@@ -40,7 +40,7 @@ describe("AdminDashboard Component", () => {
     expect(screen.getByTestId("admin-contact")).toHaveTextContent("1234567890");
   });
 
-  it("should not crash when user is not authenticated", () => {
+  it("should display empty admin details when not authenticated", () => {
     useAuth.mockReturnValue([{ user: null, token: null }]);
 
     render(<AdminDashboard />);

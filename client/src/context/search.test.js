@@ -10,7 +10,7 @@ describe("useSearch Hook", () => {
     expect(result.current[0]).toEqual({ keyword: "", results: [] });
   });
 
-  it("should update search state when setAuth is called", () => {
+  it("should update search state when setValues is called", () => {
     const { result } = renderHook(() => useSearch(), {
       wrapper: SearchProvider,
     });

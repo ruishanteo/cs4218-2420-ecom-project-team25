@@ -7,6 +7,7 @@ import {
   screen,
   fireEvent,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import "@testing-library/jest-dom/extend-expect";
@@ -71,7 +72,20 @@ describe("CreateProduct Component", () => {
     useNavigate.mockReturnValue(mockNavigate);
   });
 
-  it("should update input fields and create a product", async () => {
+  it("should display categories", async () => {
+    render(<CreateProduct />);
+
+    // Wait for categories to load
+    await waitFor(() =>
+      expect(
+        within(
+          screen.getByTestId("create-product-category-select")
+        ).queryAllByTestId(/create-product-option/)
+      ).toHaveLength(mockCategories.length)
+    );
+  });
+
+  it("should update input fields and create a product successfully", async () => {
     const user = userEvent.setup();
     const inputFormData = {
       name: "New Product",
@@ -117,6 +131,7 @@ describe("CreateProduct Component", () => {
     });
     fireEvent.click(screen.getByTestId("create-product-button"));
 
+    // Wait for success message and API call
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         CREATE_PRODUCT_STRINGS.PRODUCT_CREATED
@@ -133,12 +148,15 @@ describe("CreateProduct Component", () => {
     });
   });
 
-  it("should handle product creation failure", async () => {
+  it("should display error message when product creation fails", async () => {
     axios.post.mockResolvedValue({ data: { success: false } });
 
     render(<CreateProduct />);
+
+    // Fill form and submit
     fireEvent.click(screen.getByTestId("create-product-button"));
 
+    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_PRODUCT_STRINGS.CREATE_PRODUCT_ERROR
@@ -151,12 +169,15 @@ describe("CreateProduct Component", () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it("should handle product creation throws exception", async () => {
+  it("should display error message when product creation throws an exception", async () => {
     axios.post.mockRejectedValue(new Error("Create error"));
 
     render(<CreateProduct />);
+
+    // Fill form and submit
     fireEvent.click(screen.getByTestId("create-product-button"));
 
+    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_PRODUCT_STRINGS.CREATE_PRODUCT_ERROR
