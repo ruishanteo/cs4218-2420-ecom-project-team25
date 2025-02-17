@@ -35,9 +35,7 @@ describe("useCart Hook", () => {
       wrapper: CartProvider,
     });
 
-    await waitFor(() => {
-      expect(result.current[0]).toEqual(mockCart);
-    });
+    await waitFor(() => expect(result.current[0]).toEqual(mockCart));
     expect(localStorage.getItem).toHaveBeenCalledWith("cart");
   });
 

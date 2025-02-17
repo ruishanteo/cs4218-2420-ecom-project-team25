@@ -35,9 +35,7 @@ describe("useCategory Hook", () => {
 
     const { result } = renderHook(() => useCategory());
 
-    await waitFor(() => {
-      expect(result.current[0]).toEqual(mockCategories);
-    });
+    await waitFor(() => expect(result.current[0]).toEqual(mockCategories));
 
     expect(axios.get).toHaveBeenCalledTimes(1); // API should be called on mount
   });
@@ -47,11 +45,11 @@ describe("useCategory Hook", () => {
 
     const { result } = renderHook(() => useCategory());
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(consoleLogSpy).toHaveBeenCalledWith(
         new Error(USE_CATEGORY_STRINGS.ERROR)
-      );
-    });
+      )
+    );
 
     expect(axios.get).toHaveBeenCalledTimes(1);
     expect(result.current[0]).toEqual([]); // Should remain an empty array on failure
@@ -63,9 +61,7 @@ describe("useCategory Hook", () => {
 
     const { result } = renderHook(() => useCategory());
 
-    await waitFor(() => {
-      expect(consoleLogSpy).toHaveBeenCalledWith(mockError);
-    });
+    await waitFor(() => expect(consoleLogSpy).toHaveBeenCalledWith(mockError));
 
     expect(axios.get).toHaveBeenCalledTimes(1);
     expect(result.current[0]).toEqual([]); // Should remain an empty array on failure
@@ -85,9 +81,7 @@ describe("useCategory Hook", () => {
     // result is an array with two values: [categories, refreshCategories]
     const { result } = renderHook(() => useCategory());
 
-    await waitFor(() => {
-      expect(result.current[0]).toEqual(initialCategories);
-    });
+    await waitFor(() => expect(result.current[0]).toEqual(initialCategories));
 
     axios.get.mockResolvedValueOnce({
       data: { category: updatedCategories, success: true },
@@ -97,9 +91,7 @@ describe("useCategory Hook", () => {
       result.current[1]();
     });
 
-    await waitFor(() => {
-      expect(result.current[0]).toEqual(updatedCategories);
-    });
+    await waitFor(() => expect(result.current[0]).toEqual(updatedCategories));
 
     expect(axios.get).toHaveBeenCalledTimes(2); // API should be called twice (initial + refresh)
   });

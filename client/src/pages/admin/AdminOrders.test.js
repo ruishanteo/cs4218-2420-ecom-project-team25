@@ -163,17 +163,18 @@ describe("AdminOrders Component", () => {
     render(<AdminOrders />);
 
     // Wait and assert that there are no orders displayed
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
-          /admin-order-item-/
-        )
-      ).toHaveLength(0)
+    await waitFor(
+      () =>
+        expect(toast.error).toHaveBeenCalledWith(
+          ADMIN_ORDERS_STRINGS.FETCH_ORDERS_ERROR
+        ) // Error message should be displayed
     );
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_ALL_ORDERS);
-    expect(toast.error).toHaveBeenCalledWith(
-      ADMIN_ORDERS_STRINGS.FETCH_ORDERS_ERROR
-    ); // Error message should be displayed
+    expect(
+      within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
+        /admin-order-item-/
+      )
+    ).toHaveLength(0);
   });
 
   it("should display error message when get orders throws an exception", async () => {
@@ -183,17 +184,18 @@ describe("AdminOrders Component", () => {
     render(<AdminOrders />);
 
     // Wait and assert that there are no orders displayed
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
-          /admin-order-item-/
-        )
-      ).toHaveLength(0)
+    await waitFor(
+      () =>
+        expect(toast.error).toHaveBeenCalledWith(
+          ADMIN_ORDERS_STRINGS.FETCH_ORDERS_ERROR
+        ) // Error message should be displayed
     );
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_ALL_ORDERS);
-    expect(toast.error).toHaveBeenCalledWith(
-      ADMIN_ORDERS_STRINGS.FETCH_ORDERS_ERROR
-    ); // Error message should be displayed
+    expect(
+      within(screen.getByTestId("admin-orders-list")).queryAllByTestId(
+        /admin-order-item-/
+      )
+    ).toHaveLength(0);
   });
 
   it("should display success message when order status is updated successfully", async () => {
