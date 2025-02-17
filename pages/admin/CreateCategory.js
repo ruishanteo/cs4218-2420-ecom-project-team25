@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Layout from "./../../components/Layout";
 import AdminMenu from "./../../components/AdminMenu";
 import toast from "react-hot-toast";
 import axios from "axios";
 import CategoryForm from "../../components/Form/CategoryForm";
 import { Modal } from "antd";
+import useCategory from "../../hooks/useCategory";
 
 export const CREATE_CATEGORY_STRINGS = {
-  CREATE_CATEGORY_ACTION: "Create Category",
   UPDATE_CATEGORY_ACTION: "Edit",
   DELETE_CATEGORY_ACTION: "Delete",
 
   CREATE_CATEGORY_ERROR: "Something went wrong in creating category",
-  FETCH_CATEGORY_ERROR: "Something went wrong in getting category",
   UPDATE_CATEGORY_ERROR: "Something went wrong in updating category",
   DELETE_CATEGORY_ERROR: "Something went wrong in deleting category",
 
@@ -21,8 +20,14 @@ export const CREATE_CATEGORY_STRINGS = {
   CATEGORY_DELETED: "Category deleted successfully",
 };
 
+export const API_URLS = {
+  CREATE_CATEGORY: "/api/v1/category/create-category",
+  UPDATE_CATEGORY: "/api/v1/category/update-category",
+  DELETE_CATEGORY: "/api/v1/category/delete-category",
+};
+
 const CreateCategory = () => {
-  const [categories, setCategories] = useState([]);
+  const [categories, refreshCategories] = useCategory();
   const [name, setName] = useState("");
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -31,74 +36,57 @@ const CreateCategory = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post("/api/v1/category/create-category", {
+      const { data } = await axios.post(API_URLS.CREATE_CATEGORY, {
         name,
       });
-      if (data?.success) {
-        toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_CREATED);
-      } else {
-        throw new Error("Error in creating category");
+
+      if (!data?.success) {
+        throw new Error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
       }
+
+      toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_CREATED);
     } catch (error) {
       toast.error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
       console.log(error);
     }
-    getAllCategory();
+    refreshCategories();
   };
-
-  const getAllCategory = async () => {
-    try {
-      const { data } = await axios.get("/api/v1/category/get-category");
-      if (data.success) {
-        setCategories(data.category);
-      } else {
-        throw new Error("Error in getting category");
-      }
-    } catch (error) {
-      toast.error(CREATE_CATEGORY_STRINGS.FETCH_CATEGORY_ERROR);
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    getAllCategory();
-  }, []);
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
       const { data } = await axios.put(
-        `/api/v1/category/update-category/${selected._id}`,
+        `${API_URLS.UPDATE_CATEGORY}/${selected._id}`,
         { name: updatedName }
       );
-      if (data.success) {
-        toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_UPDATED);
-        setSelected(null);
-        setUpdatedName("");
-        setVisible(false);
-      } else {
-        throw new Error("Error in updating category");
+
+      if (!data?.success) {
+        throw new Error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
       }
+
+      toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_UPDATED);
+      setSelected(null);
+      setUpdatedName("");
+      setVisible(false);
     } catch (error) {
       toast.error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
     }
-    getAllCategory();
+    refreshCategories();
   };
 
   const handleDelete = async (pId) => {
     try {
-      const { data } = await axios.delete(
-        `/api/v1/category/delete-category/${pId}`
-      );
-      if (data.success) {
-        toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_DELETED);
-      } else {
-        throw new Error("Error in deleting category");
+      const { data } = await axios.delete(`${API_URLS.DELETE_CATEGORY}/${pId}`);
+
+      if (!data?.success) {
+        throw new Error(CREATE_CATEGORY_STRINGS.DELETE_CATEGORY_ERROR);
       }
+
+      toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_DELETED);
     } catch (error) {
       toast.error(CREATE_CATEGORY_STRINGS.DELETE_CATEGORY_ERROR);
     }
-    getAllCategory();
+    refreshCategories();
   };
 
   return (

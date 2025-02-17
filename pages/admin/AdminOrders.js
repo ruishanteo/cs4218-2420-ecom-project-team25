@@ -11,6 +11,7 @@ const { Option } = Select;
 export const ADMIN_ORDERS_STRINGS = {
   FETCH_ORDERS_ERROR: "Something went wrong while fetching orders",
   UPDATE_STATUS_ERROR: "Something went wrong while updating status",
+  UPDATE_STATUS_SUCCESS: "Status updated successfully",
 };
 
 export const API_URLS = {
@@ -34,6 +35,11 @@ const AdminOrders = () => {
   const getOrders = async () => {
     try {
       const { data } = await axios.get(API_URLS.GET_ALL_ORDERS);
+
+      if (data?.success === false) {
+        throw new Error(ADMIN_ORDERS_STRINGS.FETCH_ORDERS_ERROR);
+      }
+
       setOrders(data);
     } catch (error) {
       toast.error(ADMIN_ORDERS_STRINGS.FETCH_ORDERS_ERROR);
@@ -47,15 +53,25 @@ const AdminOrders = () => {
 
   const handleChange = async (orderId, value) => {
     try {
-      await axios.put(`${API_URLS.UPDATE_ORDER_STATUS}/${orderId}`, {
-        status: value,
-      });
+      const { data } = await axios.put(
+        `${API_URLS.UPDATE_ORDER_STATUS}/${orderId}`,
+        {
+          status: value,
+        }
+      );
+
+      if (data?.success === false) {
+        throw new Error(ADMIN_ORDERS_STRINGS.UPDATE_STATUS_ERROR);
+      }
+
+      toast.success(ADMIN_ORDERS_STRINGS.UPDATE_STATUS_SUCCESS);
       getOrders();
     } catch (error) {
       toast.error(ADMIN_ORDERS_STRINGS.UPDATE_STATUS_ERROR);
       console.log(error);
     }
   };
+
   return (
     <Layout title={"All Orders Data"}>
       <div className="row dashboard">
@@ -101,7 +117,7 @@ const AdminOrders = () => {
                       </td>
                       <td>{o?.buyer?.name}</td>
                       <td>{moment(o?.createAt).fromNow()}</td>
-                      <td>{o?.payment.success ? "Success" : "Failed"}</td>
+                      <td>{o?.payment?.success ? "Success" : "Failed"}</td>
                       <td>{o?.products?.length}</td>
                     </tr>
                   </tbody>
