@@ -31,7 +31,7 @@ describe("useCategory Hook", () => {
     ];
     axios.get.mockResolvedValueOnce({
       data: { category: mockCategories, success: true },
-    });
+    }); // Simulate a successful API call
 
     const { result } = renderHook(() => useCategory());
 
@@ -43,7 +43,7 @@ describe("useCategory Hook", () => {
   });
 
   it("should handle API failure gracefully", async () => {
-    axios.get.mockResolvedValueOnce({ data: { success: false } });
+    axios.get.mockResolvedValueOnce({ data: { success: false } }); // Simulate API failure
 
     const { result } = renderHook(() => useCategory());
 
