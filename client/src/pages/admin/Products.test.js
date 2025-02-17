@@ -47,10 +47,13 @@ describe("Products Component", () => {
   });
 
   it("should display products when API call is successful", async () => {
-    axios.get.mockResolvedValueOnce({ data: { products: mockProducts } });
+    axios.get.mockResolvedValueOnce({
+      data: { products: mockProducts, success: true },
+    });
 
     render(<Products />);
 
+    // Wait for the products to be displayed
     await waitFor(() =>
       expect(
         within(screen.getByTestId("admin-products-list")).queryAllByTestId(
@@ -62,10 +65,11 @@ describe("Products Component", () => {
   });
 
   it("should display no products when API returns an empty array", async () => {
-    axios.get.mockResolvedValueOnce({ data: { products: [] } });
+    axios.get.mockResolvedValueOnce({ data: { products: [], success: true } });
 
     render(<Products />);
 
+    // Wait for the products to be displayed (0 products)
     await waitFor(() =>
       expect(
         within(screen.getByTestId("admin-products-list")).queryAllByTestId(
@@ -76,22 +80,41 @@ describe("Products Component", () => {
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
   });
 
-  it("should display an error message when API call fails", async () => {
-    const mockError = new Error("Failed to fetch products");
-    axios.get.mockRejectedValueOnce(mockError);
+  it("should display error message when get products fails", async () => {
+    axios.get.mockResolvedValueOnce({ data: { success: false } });
 
     render(<Products />);
 
+    // Wait for error message, API call and verify no products are displayed
     await waitFor(() =>
-      expect(
-        within(screen.getByTestId("admin-products-list")).queryAllByTestId(
-          /admin-product-/
-        )
-      ).toHaveLength(0)
+      expect(toast.error).toHaveBeenCalledWith(
+        PRODUCTS_STRINGS.FETCH_PRODUCTS_ERROR
+      )
     );
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
-    expect(toast.error).toHaveBeenCalledWith(
-      PRODUCTS_STRINGS.FETCH_PRODUCTS_ERROR
+    expect(
+      within(screen.getByTestId("admin-products-list")).queryAllByTestId(
+        /admin-product-/
+      )
+    ).toHaveLength(0);
+  });
+
+  it("should display error message when get products throws an exception", async () => {
+    axios.get.mockRejectedValueOnce(new Error("Failed to fetch products"));
+
+    render(<Products />);
+
+    // Wait for error message, API call and verify no products are displayed
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        PRODUCTS_STRINGS.FETCH_PRODUCTS_ERROR
+      )
     );
+    expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
+    expect(
+      within(screen.getByTestId("admin-products-list")).queryAllByTestId(
+        /admin-product-/
+      )
+    ).toHaveLength(0);
   });
 });

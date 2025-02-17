@@ -87,6 +87,7 @@ describe("UpdateProduct Component", () => {
       shipping: true,
       category: { _id: "cat1", name: "Category 1" },
     },
+    success: true,
   };
   const mockCategories = [
     {
@@ -109,7 +110,7 @@ describe("UpdateProduct Component", () => {
   });
 
   it("should fetch and display product details", async () => {
-    axios.get.mockResolvedValueOnce({ data: mockProduct });
+    axios.get.mockResolvedValueOnce({ data: mockProduct }); // Simulate success
 
     render(<UpdateProduct />);
 
@@ -131,11 +132,26 @@ describe("UpdateProduct Component", () => {
     expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
   });
 
-  it("should handle failure while fetching product details", async () => {
-    axios.get.mockRejectedValueOnce(new Error("Failed to fetch product"));
+  it("should display error message when product fetch fails", async () => {
+    axios.get.mockResolvedValueOnce({ data: { success: false } }); // Simulate failure
 
     render(<UpdateProduct />);
 
+    // Wait for error message and API call
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        UPDATE_PRODUCT_STRINGS.FETCH_PRODUCT_ERROR
+      );
+    });
+    expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
+  });
+
+  it("should display error message when product fetch throws an exception", async () => {
+    axios.get.mockRejectedValueOnce(new Error("Failed to fetch product")); // Simulate exception
+
+    render(<UpdateProduct />);
+
+    // Wait for error message and API call
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.FETCH_PRODUCT_ERROR
@@ -159,7 +175,7 @@ describe("UpdateProduct Component", () => {
     const user = userEvent.setup();
     URL.createObjectURL = jest.fn().mockReturnValue("test-url");
     axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.put.mockResolvedValueOnce({ data: { success: true } });
+    axios.put.mockResolvedValueOnce({ data: { success: true } }); // Simulate success
 
     render(<UpdateProduct />);
 
@@ -206,6 +222,7 @@ describe("UpdateProduct Component", () => {
     });
     fireEvent.click(screen.getByTestId("admin-update-product-button"));
 
+    // Wait for success message and API call
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.PRODUCT_UPDATED
@@ -222,9 +239,9 @@ describe("UpdateProduct Component", () => {
     });
   });
 
-  it("should handle failure during product update", async () => {
+  it("should display error message when product update fails", async () => {
     axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.put.mockResolvedValueOnce({ data: { success: false } });
+    axios.put.mockResolvedValueOnce({ data: { success: false } }); // Simulate failure
 
     render(<UpdateProduct />);
 
@@ -248,9 +265,9 @@ describe("UpdateProduct Component", () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it("should handle exception thrown during product update", async () => {
+  it("should display error message when product update throws an exception", async () => {
     axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.put.mockRejectedValueOnce(new Error("Failed to update product"));
+    axios.put.mockRejectedValueOnce(new Error("Failed to update product")); // Simulate exception
 
     render(<UpdateProduct />);
 
@@ -275,9 +292,9 @@ describe("UpdateProduct Component", () => {
   });
 
   it("should delete a product successfully", async () => {
-    window.prompt = jest.fn().mockReturnValue(true);
     axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.delete.mockResolvedValueOnce({});
+    axios.delete.mockResolvedValueOnce({ data: { success: true } }); // Simulate success
+    window.prompt = jest.fn().mockReturnValue(true); // Simulate confirmation
 
     render(<UpdateProduct />);
 
@@ -289,19 +306,18 @@ describe("UpdateProduct Component", () => {
     );
     fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
-    await waitFor(() => {
-      expect(axios.delete).toHaveBeenCalledWith(
-        `/api/v1/product/delete-product/${mockProduct.product._id}`
-      );
-    });
-    expect(toast.success).toHaveBeenCalled();
+    // Wait for success message and API call
+    await waitFor(() => expect(toast.success).toHaveBeenCalled());
+    expect(axios.delete).toHaveBeenCalledWith(
+      `/api/v1/product/delete-product/${mockProduct.product._id}`
+    );
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
   });
 
-  it("should handle failure during product deletion", async () => {
-    window.prompt = jest.fn().mockReturnValue(true);
+  it("should display error message when product deletion fails", async () => {
     axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.delete.mockRejectedValueOnce(new Error("Failed to delete product"));
+    axios.delete.mockResolvedValueOnce({ success: false }); // Simulate failure
+    window.prompt = jest.fn().mockReturnValue(true); // Simulate confirmation
 
     render(<UpdateProduct />);
 
@@ -313,6 +329,34 @@ describe("UpdateProduct Component", () => {
     );
     fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
+    // Wait for error message and API call
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ERROR
+      );
+    });
+    expect(axios.delete).toHaveBeenCalledWith(
+      `${API_URLS.DELETE_PRODUCT}/${mockProduct.product._id}`
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it("should display error message when product deletion throws an exception", async () => {
+    axios.get.mockResolvedValueOnce({ data: mockProduct });
+    axios.delete.mockRejectedValueOnce(new Error("Failed to delete product")); // Simulate exception
+    window.prompt = jest.fn().mockReturnValue(true); // Simulate confirmation
+
+    render(<UpdateProduct />);
+
+    // Wait for the product details to load and trigger the delete button click
+    await waitFor(() =>
+      expect(
+        screen.getByTestId("admin-update-product-name-input")
+      ).toHaveDisplayValue(mockProduct.product.name)
+    );
+    fireEvent.click(screen.getByTestId("admin-delete-product-button"));
+
+    // Wait for error message and API call
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ERROR
@@ -325,8 +369,8 @@ describe("UpdateProduct Component", () => {
   });
 
   it("should handle prompt cancel during product deletion", async () => {
-    window.prompt = jest.fn().mockReturnValue(null);
     axios.get.mockResolvedValueOnce({ data: mockProduct });
+    window.prompt = jest.fn().mockReturnValue(null); // Simulate cancel
 
     render(<UpdateProduct />);
 
@@ -338,6 +382,7 @@ describe("UpdateProduct Component", () => {
     );
     fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
+    // Wait for prompt and check if delete API is not called
     await waitFor(() => {
       expect(window.prompt).toHaveBeenCalled();
     });

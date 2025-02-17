@@ -59,6 +59,11 @@ const UpdateProduct = () => {
         const { data } = await axios.get(
           `${API_URLS.GET_PRODUCT}/${params.slug}`
         );
+
+        if (!data?.success) {
+          throw new Error(UPDATE_PRODUCT_STRINGS.FETCH_PRODUCT_ERROR);
+        }
+
         setName(data.product.name);
         setId(data.product._id);
         setDescription(data.product.description);
@@ -88,16 +93,18 @@ const UpdateProduct = () => {
       photo && productData.append("photo", photo);
       productData.append("category", category);
       productData.append("shipping", shipping);
+
       const { data } = await axios.put(
         `${API_URLS.UPDATE_PRODUCT}/${id}`,
         productData
       );
-      if (data?.success) {
-        toast.success(UPDATE_PRODUCT_STRINGS.PRODUCT_UPDATED);
-        navigate("/dashboard/admin/products");
-      } else {
-        toast.error(UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ERROR);
+
+      if (!data?.success) {
+        throw new Error(UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ERROR);
       }
+
+      toast.success(UPDATE_PRODUCT_STRINGS.PRODUCT_UPDATED);
+      navigate("/dashboard/admin/products");
     } catch (error) {
       toast.error(UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ERROR);
       console.log(error);
@@ -112,7 +119,12 @@ const UpdateProduct = () => {
       );
       if (!answer) return;
 
-      await axios.delete(`${API_URLS.DELETE_PRODUCT}/${id}`);
+      const { data } = await axios.delete(`${API_URLS.DELETE_PRODUCT}/${id}`);
+
+      if (!data?.success) {
+        throw new Error(UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ERROR);
+      }
+
       toast.success(UPDATE_PRODUCT_STRINGS.PRODUCT_DELETED);
       navigate("/dashboard/admin/products");
     } catch (error) {

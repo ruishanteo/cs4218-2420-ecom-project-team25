@@ -21,6 +21,11 @@ const Products = () => {
     const getAllProducts = async () => {
       try {
         const { data } = await axios.get(API_URLS.GET_PRODUCTS);
+
+        if (!data?.success) {
+          throw new Error(PRODUCTS_STRINGS.FETCH_PRODUCTS_ERROR);
+        }
+
         setProducts(data.products);
       } catch (error) {
         toast.error(PRODUCTS_STRINGS.FETCH_PRODUCTS_ERROR);

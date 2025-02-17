@@ -8,7 +8,6 @@ import { Modal } from "antd";
 import useCategory from "../../hooks/useCategory";
 
 export const CREATE_CATEGORY_STRINGS = {
-  CREATE_CATEGORY_ACTION: "Create Category",
   UPDATE_CATEGORY_ACTION: "Edit",
   DELETE_CATEGORY_ACTION: "Delete",
 
@@ -40,11 +39,12 @@ const CreateCategory = () => {
       const { data } = await axios.post(API_URLS.CREATE_CATEGORY, {
         name,
       });
-      if (data?.success) {
-        toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_CREATED);
-      } else {
-        throw new Error("Error in creating category");
+
+      if (!data?.success) {
+        throw new Error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
       }
+
+      toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_CREATED);
     } catch (error) {
       toast.error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
       console.log(error);
@@ -59,14 +59,15 @@ const CreateCategory = () => {
         `${API_URLS.UPDATE_CATEGORY}/${selected._id}`,
         { name: updatedName }
       );
-      if (data.success) {
-        toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_UPDATED);
-        setSelected(null);
-        setUpdatedName("");
-        setVisible(false);
-      } else {
-        throw new Error("Error in updating category");
+
+      if (!data?.success) {
+        throw new Error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
       }
+
+      toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_UPDATED);
+      setSelected(null);
+      setUpdatedName("");
+      setVisible(false);
     } catch (error) {
       toast.error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
     }
@@ -76,11 +77,12 @@ const CreateCategory = () => {
   const handleDelete = async (pId) => {
     try {
       const { data } = await axios.delete(`${API_URLS.DELETE_CATEGORY}/${pId}`);
-      if (data.success) {
-        toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_DELETED);
-      } else {
-        throw new Error("Error in deleting category");
+
+      if (!data?.success) {
+        throw new Error(CREATE_CATEGORY_STRINGS.DELETE_CATEGORY_ERROR);
       }
+
+      toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_DELETED);
     } catch (error) {
       toast.error(CREATE_CATEGORY_STRINGS.DELETE_CATEGORY_ERROR);
     }
@@ -113,7 +115,7 @@ const CreateCategory = () => {
                 </thead>
                 <tbody data-testid="create-category-list">
                   {categories?.map((c) => (
-                    <tr key={c._id}>
+                    <tr key={c._id} data-testid={`create-category-${c._id}`}>
                       <td>{c.name}</td>
                       <td>
                         <button
