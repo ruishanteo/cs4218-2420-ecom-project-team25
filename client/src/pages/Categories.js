@@ -8,7 +8,7 @@ const Categories = () => {
     <Layout title={"All Categories"}>
       <div className="container">
         <div className="row">
-          {categories.map((c) => (
+          {categories?.map((c) => (
             <div className="col-md-6 mt-5 mb-3 gx-3 gy-3" key={c._id}>
               <Link to={`/category/${c.slug}`} className="btn btn-primary">
                 {c.name}
