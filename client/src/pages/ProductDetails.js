@@ -67,6 +67,7 @@ const ProductDetails = () => {
           <h6>Category : {product?.category?.name}</h6>
           <button
             className="btn btn-secondary ms-1"
+            data-testid={`${product._id}-add-to-cart-btn`}
             onClick={() => {
               setCart([...cart, product]);
               localStorage.setItem("cart", JSON.stringify([...cart, product]));
@@ -106,12 +107,14 @@ const ProductDetails = () => {
                 </p>
                 <div className="card-name-price">
                   <button
+                    data-testid={`${p._id}-more-details-btn`}
                     className="btn btn-info ms-1"
                     onClick={() => navigate(`/product/${p.slug}`)}
                   >
                     More Details
                   </button>
-                  {/* <button
+                  <button
+                    data-testid={`${p._id}-add-to-cart-btn`}
                     className="btn btn-dark ms-1"
                     onClick={() => {
                       setCart([...cart, p]);
@@ -123,7 +126,7 @@ const ProductDetails = () => {
                     }}
                   >
                     ADD TO CART
-                </button> */}
+                  </button>
                 </div>
               </div>
             </div>

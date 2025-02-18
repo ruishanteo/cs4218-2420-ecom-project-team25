@@ -14,7 +14,6 @@ import axios from "axios";
 import ProductDetails from "./ProductDetails";
 import { useCart } from "../context/cart";
 import toast from "react-hot-toast";
-import { cleanup } from "@testing-library/react";
 jest.mock("axios");
 jest.mock("react-hot-toast");
 
@@ -204,15 +203,70 @@ describe("Product Details Page", () => {
 
   it("should add product to cart on click", async () => {
     axios.get
-      .mockResolvedValueOnce({ data: { product: mockProduct } }) // First call for product data
-      .mockResolvedValueOnce({ data: { products: mockRelatedProducts } }); // Second call for related products
+      .mockResolvedValueOnce({ data: { product: mockProduct } }) // First API call for product data
+      .mockResolvedValueOnce({ data: { products: mockRelatedProducts } }); // Second API call for related products
 
     const setCart = jest.fn();
 
     // Mock an empty cart first
     useCart.mockReturnValue([[], setCart]);
 
-    const mockNewUpdatedCart = [mockProduct];
+    let mockNewUpdatedCart = [mockProduct];
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/product/mock-product"]}>
+          <Routes>
+            <Route path="/product/:slug" element={<ProductDetails />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        `/api/v1/product/get-product/${mockSlug}`
+      );
+    });
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        `/api/v1/product/related-product/${mockProduct._id}/${mockProduct.category._id}`
+      );
+    });
+    // add main product to cart
+    const addToCartButton = screen.getByTestId(
+      `${mockProduct._id}-add-to-cart-btn`
+    );
+    expect(addToCartButton).toBeInTheDocument();
+    fireEvent.click(addToCartButton);
+
+    // ensure the cart is updated with the new product
+    expect(setCart).toHaveBeenCalledWith(mockNewUpdatedCart);
+
+    // verify that the local storage is updated
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      "cart",
+      JSON.stringify(mockNewUpdatedCart)
+    );
+
+    // check toast
+    expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
+  });
+
+  it("should add related product to cart on click", async () => {
+    axios.get
+      .mockResolvedValueOnce({ data: { product: mockProduct } }) // First API call for product data
+      .mockResolvedValueOnce({ data: { products: mockRelatedProducts } }); // Second API call for related products
+
+    const setCart = jest.fn();
+
+    // Mock an empty cart first
+    useCart.mockReturnValue([[], setCart]);
+
+    const idxRelatedProductToAdd = 0;
+
+    let mockNewUpdatedCart = [mockRelatedProducts[idxRelatedProductToAdd]];
 
     await act(async () => {
       render(
@@ -236,16 +290,10 @@ describe("Product Details Page", () => {
       );
     });
 
-    // wait for the product details to be displayed
-    await waitFor(async () => {
-      expect(
-        await screen.findByText(new RegExp(`${mockProduct.name}`, "i"))
-      ).toBeInTheDocument();
-    });
-
-    const addToCartButton = screen.getByRole("button", {
-      name: /add to cart/i,
-    });
+    // add main product to cart
+    const addToCartButton = screen.getByTestId(
+      `${mockRelatedProducts[idxRelatedProductToAdd]._id}-add-to-cart-btn`
+    );
     expect(addToCartButton).toBeInTheDocument();
     fireEvent.click(addToCartButton);
 
@@ -291,18 +339,11 @@ describe("Product Details Page", () => {
       );
     });
 
-    await waitFor(() => {
-      mockRelatedProducts.forEach((product) => {
-        expect(screen.getByText(product.name)).toBeInTheDocument();
-      });
-    });
+    const moreDetailsButtons = screen.getByTestId(
+      `${mockRelatedProducts[idxMockRelatedProduct]._id}-more-details-btn`
+    );
 
-    const moreDetailsButtons = screen.getAllByRole("button", {
-      name: /More Details/i,
-    });
-    expect(moreDetailsButtons).toHaveLength(mockRelatedProducts.length);
-
-    fireEvent.click(moreDetailsButtons[idxMockRelatedProduct]);
+    fireEvent.click(moreDetailsButtons);
 
     expect(navigate).toHaveBeenCalledWith(
       `/product/${mockRelatedProducts[idxMockRelatedProduct].slug}`
