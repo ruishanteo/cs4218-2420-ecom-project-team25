@@ -10,8 +10,8 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
     "test": "npm run test:frontend && npm run test:backend",
-    "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js",
-    "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js"
+    "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js --coverage",
+    "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js --coverage"
   },
   "keywords": [],
   "author": "RP",
@@ -27,6 +27,7 @@
     "express": "^4.18.2",
     "express-formidable": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
+    "mockingoose": "^2.16.2",
     "mongodb": "^6.3.0",
     "mongodb-memory-server": "^10.1.3",
     "mongoose": "^8.1.2",
@@ -41,11 +42,20 @@
     "@babel/preset-react": "^7.24.1",
     "@playwright/test": "^1.44.0",
     "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.12.12",
     "babel-jest": "^29.7.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "sonarqube-scanner": "^3.3.0"
+  },
+  "jest": {
+    "coverageReporters": [
+      "lcov",
+      "text"
+    ],
+    "collectCoverage": true,
+    "coverageDirectory": "coverage"
   }
 }

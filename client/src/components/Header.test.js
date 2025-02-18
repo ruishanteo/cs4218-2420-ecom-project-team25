@@ -6,6 +6,7 @@ import { useCart } from "../context/cart";
 import Header from "./Header";
 import toast from "react-hot-toast";
 import "@testing-library/jest-dom";
+import useCategory from "../hooks/useCategory";
 
 jest.mock("../context/auth", () => ({
   useAuth: jest.fn(),
@@ -24,26 +25,31 @@ jest.mock("react-hot-toast", () => ({
   error: jest.fn(),
 }));
 
-jest.mock("../hooks/useCategory", () =>
-  jest.fn(() => [
-    {
-      _id: "123451",
-      name: "Electronics",
-      slug: "electronics",
-      __v: 0,
-    },
-    {
-      _id: "123452",
-      name: "Fashion",
-      slug: "fashion",
-      __v: 0,
-    },
-  ])
-);
+jest.mock("../hooks/useCategory", () => ({
+  __esModule: true,
+  default: jest.fn(() => [[], jest.fn()]),
+}));
 
 describe("Header Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useCategory.mockReturnValue([
+      [
+        {
+          _id: "123451",
+          name: "Electronics",
+          slug: "electronics",
+          __v: 0,
+        },
+        {
+          _id: "123452",
+          name: "Fashion",
+          slug: "fashion",
+          __v: 0,
+        },
+      ],
+      jest.fn(),
+    ]);
   });
 
   beforeAll(() => {
