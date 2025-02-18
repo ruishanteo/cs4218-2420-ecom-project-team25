@@ -30,8 +30,8 @@ const renderWithRouter = (ui) => {
 
 describe("Categories Page", () => {
   const mockCategories = [
-    { _id: "1", name: "Category 1", slug: "category-1" },
-    { _id: "2", name: "Category 2", slug: "category-2" },
+    { _id: "1", name: "Category 1", slug: "category-1", __v: 0 },
+    { _id: "2", name: "Category 2", slug: "category-2", __v: 0 },
   ];
 
   beforeEach(() => {
@@ -39,7 +39,7 @@ describe("Categories Page", () => {
   });
 
   it("should render categories in Category page", () => {
-    useCategory.mockReturnValueOnce(mockCategories);
+    useCategory.mockReturnValue([mockCategories, jest.fn()]);
 
     renderWithRouter(<Categories />);
 
@@ -51,9 +51,9 @@ describe("Categories Page", () => {
   });
 
   it("should not render categories in Category page", () => {
-    useCategory.mockReturnValueOnce([]);
+    useCategory.mockReturnValue([[], jest.fn()]);
 
-    render(<Categories />);
+    renderWithRouter(<Categories />);
 
     const noCategory = screen.queryByRole("link");
     expect(noCategory).not.toBeInTheDocument();
