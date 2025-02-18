@@ -126,9 +126,7 @@ describe("CreateProduct Component", () => {
     await act(async () => {
       await user.upload(uploadInput, inputFormData.photo);
     });
-    await waitFor(() => {
-      expect(uploadInput.files).toHaveLength(1);
-    });
+    await waitFor(() => expect(uploadInput.files).toHaveLength(1));
     fireEvent.click(screen.getByTestId("create-product-button"));
 
     // Wait for success message and API call

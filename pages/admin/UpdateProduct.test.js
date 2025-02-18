@@ -138,11 +138,11 @@ describe("UpdateProduct Component", () => {
     render(<UpdateProduct />);
 
     // Wait for error message and API call
-    await waitFor(() => {
+    await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.FETCH_PRODUCT_ERROR
-      );
-    });
+      )
+    );
     expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
   });
 
@@ -152,11 +152,11 @@ describe("UpdateProduct Component", () => {
     render(<UpdateProduct />);
 
     // Wait for error message and API call
-    await waitFor(() => {
+    await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.FETCH_PRODUCT_ERROR
-      );
-    });
+      )
+    );
     expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
   });
 
@@ -217,17 +217,15 @@ describe("UpdateProduct Component", () => {
     await act(async () => {
       await user.upload(uploadInput, inputFormData.photo);
     });
-    await waitFor(() => {
-      expect(uploadInput.files).toHaveLength(1);
-    });
+    await waitFor(() => expect(uploadInput.files).toHaveLength(1));
     fireEvent.click(screen.getByTestId("admin-update-product-button"));
 
     // Wait for success message and API call
-    await waitFor(() => {
+    await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.PRODUCT_UPDATED
-      );
-    });
+      )
+    );
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
     expect(axios.put).toHaveBeenCalledWith(
       `${API_URLS.UPDATE_PRODUCT}/${mockProduct.product._id}`,
@@ -253,11 +251,11 @@ describe("UpdateProduct Component", () => {
     );
     fireEvent.click(screen.getByTestId("admin-update-product-button"));
 
-    await waitFor(() => {
+    await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ERROR
-      );
-    });
+      )
+    );
     expect(axios.put).toHaveBeenCalledWith(
       `${API_URLS.UPDATE_PRODUCT}/${mockProduct.product._id}`,
       expect.any(FormData)
@@ -279,11 +277,12 @@ describe("UpdateProduct Component", () => {
     );
     fireEvent.click(screen.getByText("UPDATE PRODUCT"));
 
-    await waitFor(() => {
+    // Wait for error message and API call
+    await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         "Something went wrong in updating product"
-      );
-    });
+      )
+    );
     expect(axios.put).toHaveBeenCalledWith(
       `/api/v1/product/update-product/${mockProduct.product._id}`,
       expect.any(FormData)
@@ -307,7 +306,11 @@ describe("UpdateProduct Component", () => {
     fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
     // Wait for success message and API call
-    await waitFor(() => expect(toast.success).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        UPDATE_PRODUCT_STRINGS.PRODUCT_DELETED
+      )
+    );
     expect(axios.delete).toHaveBeenCalledWith(
       `/api/v1/product/delete-product/${mockProduct.product._id}`
     );
@@ -330,11 +333,11 @@ describe("UpdateProduct Component", () => {
     fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
     // Wait for error message and API call
-    await waitFor(() => {
+    await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ERROR
-      );
-    });
+      )
+    );
     expect(axios.delete).toHaveBeenCalledWith(
       `${API_URLS.DELETE_PRODUCT}/${mockProduct.product._id}`
     );
@@ -357,11 +360,11 @@ describe("UpdateProduct Component", () => {
     fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
     // Wait for error message and API call
-    await waitFor(() => {
+    await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ERROR
-      );
-    });
+      )
+    );
     expect(axios.delete).toHaveBeenCalledWith(
       `${API_URLS.DELETE_PRODUCT}/${mockProduct.product._id}`
     );
@@ -383,9 +386,7 @@ describe("UpdateProduct Component", () => {
     fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
     // Wait for prompt and check if delete API is not called
-    await waitFor(() => {
-      expect(window.prompt).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(window.prompt).toHaveBeenCalled());
     expect(axios.delete).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });

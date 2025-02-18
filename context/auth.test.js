@@ -33,9 +33,7 @@ describe("useAuth Hook", () => {
       wrapper: AuthProvider,
     });
 
-    await waitFor(() => {
-      expect(result.current[0]).toEqual(mockAuth);
-    });
+    await waitFor(() => expect(result.current[0]).toEqual(mockAuth));
     expect(localStorage.getItem).toHaveBeenCalledWith("auth");
   });
 
