@@ -176,24 +176,15 @@ describe("Cart Page when user is authenticated", () => {
     ).toBeInTheDocument();
   });
 
-  it("should handle total price calcuation error if invalid price", async () => {
-    const mockCartItems = [
-      {
-        _id: "1",
-        name: "Product 1",
-        price: "invalid",
-        quantity: 2,
-        image: "product1.jpg",
-        description: "This is a product description",
-      },
-    ];
-    useCart.mockReturnValue([mockCartItems, jest.fn()]);
+  it("should handle total price calcuation error gracefully", () => {
+    const mockError = new Error("Failed to calculate total price");
+    const mockToLocaleString = jest.spyOn(Number.prototype, "toLocaleString");
+    mockToLocaleString.mockImplementation(() => {
+      throw mockError;
+    });
 
     renderWithRouter(<CartPage />);
-
-    await waitFor(() => {
-      expect(consoleLogSpy).toHaveBeenCalled();
-    });
+    expect(consoleLogSpy).toHaveBeenCalledWith(mockError);
   });
 
   it("should navigate to update address page when update address button is clicked", () => {
