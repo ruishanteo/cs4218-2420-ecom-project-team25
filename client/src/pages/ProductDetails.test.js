@@ -146,6 +146,41 @@ describe("Product Details Page", () => {
     }
   });
 
+  it("should display message if no related products are found", async () => {
+    axios.get
+      .mockResolvedValueOnce({ data: { product: mockProduct } }) // First API call for product data
+      .mockResolvedValueOnce({ data: { products: [] } }); // no related products
+
+    // without act, a warning of not wrapping in act will be thrown...
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={["/product/mock-product"]}>
+          <Routes>
+            <Route path="/product/:slug" element={<ProductDetails />} />
+          </Routes>
+        </MemoryRouter>
+      );
+    });
+
+    await waitFor(() =>
+      expect(axios.get).toHaveBeenCalledWith(
+        `/api/v1/product/get-product/${mockSlug}`
+      )
+    );
+
+    await waitFor(() =>
+      expect(axios.get).toHaveBeenCalledWith(
+        `/api/v1/product/related-product/${mockProduct._id}/${mockProduct.category._id}`
+      )
+    );
+
+    expect(await screen.findByText(/Product Details/i)).toBeInTheDocument();
+
+    expect(
+      await screen.findByText(/No similar products found/i)
+    ).toBeInTheDocument();
+  });
+
   it("should log error if product fetch fails", async () => {
     const mockError = new Error("Failed to fetch product");
     axios.get = jest.fn().mockRejectedValueOnce(mockError);
