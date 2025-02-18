@@ -1,20 +1,19 @@
-import { useState, useContext, createContext } from "react";
+import React, { useState, useContext, createContext } from "react";
 
 const SearchContext = createContext();
 const SearchProvider = ({ children }) => {
-  const [auth, setAuth] = useState({
+  const [value, values] = useState({
     keyword: "",
     results: [],
   });
 
   return (
-    <SearchContext.Provider value={[auth, setAuth]}>
+    <SearchContext.Provider value={[value, values]}>
       {children}
     </SearchContext.Provider>
   );
 };
 
-// custom hook
 const useSearch = () => useContext(SearchContext);
 
 export { useSearch, SearchProvider };

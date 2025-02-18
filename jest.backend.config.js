@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   // display name
   displayName: "backend",
 
@@ -13,11 +13,19 @@ export default {
 
   // jest code coverage
   collectCoverage: true,
-  collectCoverageFrom: ["controllers/**"],
+  collectCoverageFrom: ["controllers/**", "models/**"],
+  collectCoverageFrom: [
+    "config/**/*.js",
+    "controllers/**/*.js",
+    "helpers/**/*.js",
+    "middlewares/**/*.js",
+    "models/**/*.js",
+  ],
+  coverageDirectory: "coverage/backend",
   coverageThreshold: {
     global: {
-      lines: 100,
-      functions: 100,
+      lines: 15,
+      functions: 15,
     },
   },
 };

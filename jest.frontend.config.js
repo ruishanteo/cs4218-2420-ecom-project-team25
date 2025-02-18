@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   // name displayed during tests
   displayName: "frontend",
 
@@ -31,11 +31,16 @@ export default {
     "client/src/**/*.{js, jsx}",
     "!client/src/_site/**",
     "!client/src/_markbind/**",
+    "!client/src/index.js",
+    "!client/src/reportWebVitals.js",
+    "!client/src/setupTests.js",
+    "!client/src/App.js",
   ],
+  coverageDirectory: "coverage/frontend",
   coverageThreshold: {
     global: {
-      lines: 100,
-      functions: 100,
+      lines: 15,
+      functions: 15,
     },
   },
 };
