@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import orderModel from "./orderModel";
 
-
 const mockingoose = require('mockingoose');
 
 beforeEach(() => {
@@ -46,6 +45,44 @@ describe("Order Model", () => {
     expect(error).toBeTruthy();
     expect(error.message).toContain("`Invalid Status` is not a valid enum value");
   });
+
+  it("should not create an order without a buyer", async () => {
+    const order = new orderModel({
+      products: [new mongoose.Types.ObjectId()],
+      payment: {},
+    });
+  
+    let error;
+    try {
+      await order.validate(); // Validate without saving to the database
+    } catch (err) {
+      error = err;
+    }
+  
+    // Expect an error because 'buyer' is required
+    expect(error).toBeTruthy();
+    expect(error.message).toContain("Path `buyer` is required.");
+  });
+  
+  it("should not create an order without a product", async () => {
+    const order = new orderModel({
+      products: [], // Empty array (invalid)
+      payment: {},
+      buyer: new mongoose.Types.ObjectId(),
+    });
+  
+    let error;
+    try {
+      await order.validate(); // Validate without saving
+    } catch (err) {
+      error = err;
+    }
+  
+    // Expect an error because 'products' is required and must contain at least one item
+    expect(error).toBeTruthy();
+    expect(error.message).toContain("Order must contain at least one product.");
+  });
+  
 
   it("should retrieve an order from the database", async () => {
     const mockOrder = {
