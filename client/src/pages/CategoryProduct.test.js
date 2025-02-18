@@ -2,6 +2,7 @@ import "@testing-library/jest-dom/extend-expect";
 import React from "react";
 import { render, waitFor, screen, fireEvent } from "@testing-library/react";
 import CategoryProduct from "./CategoryProduct";
+import toast from "react-hot-toast";
 
 import axios from "axios";
 import {
@@ -11,7 +12,9 @@ import {
   Routes,
   Route,
 } from "react-router-dom";
+import { useCart } from "../context/cart";
 
+jest.mock("react-hot-toast");
 jest.mock("axios");
 
 jest.mock("../context/cart", () => ({
@@ -70,6 +73,27 @@ describe("Category Product Page", () => {
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {}); // mock console.log to suppress output
     useNavigate.mockReturnValue(mockedNavigator);
     useParams.mockReturnValue({ slug: mockSlug });
+  });
+
+  beforeAll(() => {
+    Object.defineProperty(window, "localStorage", {
+      value: {
+        setItem: jest.fn(),
+        getItem: jest.fn(),
+        removeItem: jest.fn(),
+      },
+      writable: true,
+    });
+
+    Object.defineProperty(window, "matchMedia", {
+      value: jest.fn(() => {
+        return {
+          matches: true,
+          addListener: jest.fn(),
+          removeListener: jest.fn(),
+        };
+      }),
+    });
   });
 
   afterAll(() => {
@@ -221,5 +245,58 @@ describe("Category Product Page", () => {
         `/product/${mockProducts[0].slug}`
       );
     });
+  });
+
+  it("should add product to cart on click", async () => {
+    const setCart = jest.fn();
+    useCart.mockReturnValue([[], setCart]);
+
+    const idxProductToAdd = 0;
+
+    axios.get.mockResolvedValueOnce({
+      data: {
+        products: mockProducts,
+        category: mockCategory,
+      },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/category/test-category"]}>
+        <Routes>
+          <Route path="/category/:slug" element={<CategoryProduct />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        `/api/v1/product/product-category/${mockSlug}`
+      );
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(new RegExp(`Category - ${mockCategory.name}`, "i"))
+      ).toBeInTheDocument();
+    });
+
+    const addToCartButton = screen.getByTestId(
+      `${mockProducts[idxProductToAdd]._id}-add-to-cart-btn`
+    );
+
+    console.log(addToCartButton);
+
+    fireEvent.click(addToCartButton);
+
+    expect(setCart).toHaveBeenCalledWith([mockProducts[idxProductToAdd]]);
+
+    await waitFor(() => {
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        "cart",
+        JSON.stringify([mockProducts[idxProductToAdd]])
+      );
+    });
+
+    expect(toast.success).toHaveBeenCalled();
   });
 });
