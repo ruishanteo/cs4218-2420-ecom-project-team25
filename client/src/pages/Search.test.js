@@ -1,12 +1,11 @@
 import React from "react";
-import { MemoryRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import toast from "react-hot-toast";
 import "@testing-library/jest-dom/extend-expect";
 
 import Search from "../pages/Search";
 import { useSearch } from "../context/search";
-import ProductDetails from "./ProductDetails";
 
 // Mock dependencies
 jest.mock("react-hot-toast");
@@ -44,13 +43,7 @@ describe("Search Component", () => {
   it("should render the search component with no results message", () => {
     useSearch.mockReturnValue([{ results: [] }]);
 
-    render(
-      <MemoryRouter initialEntries={["/search"]}>
-        <Routes>
-          <Route path="/search" element={<Search />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    render(<Search />);
 
     expect(screen.getByTestId("search-no-results")).toBeInTheDocument();
     expect(screen.getByText("No Products Found")).toBeInTheDocument();
@@ -65,13 +58,7 @@ describe("Search Component", () => {
 
     useSearch.mockReturnValue([{ results: mockProducts }]);
 
-    render(
-      <MemoryRouter initialEntries={["/search"]}>
-        <Routes>
-          <Route path="/search" element={<Search />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    render(<Search />);
 
     expect(screen.getByTestId("search-results")).toBeInTheDocument();
     expect(screen.getByText("Found 2")).toBeInTheDocument();
@@ -97,13 +84,7 @@ describe("Search Component", () => {
     };
     useSearch.mockReturnValue([{ results: [mockProduct] }]);
 
-    render(
-      <MemoryRouter initialEntries={["/search"]}>
-        <Routes>
-          <Route path="/search" element={<Search />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    render(<Search />);
 
     expect(
       screen.getByTestId(`product-truncated-desc-${mockProduct._id}`)
@@ -126,14 +107,7 @@ describe("Search Component", () => {
 
     useSearch.mockReturnValue([{ results: mockProduct }]);
 
-    render(
-      <MemoryRouter initialEntries={["/search"]}>
-        <Routes>
-          <Route path="/search" element={<Search />} />
-          <Route path="/product/:slug" element={<ProductDetails />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    render(<Search />);
 
     const moreDetailsButton = screen.getByText("More Details");
     fireEvent.click(moreDetailsButton);
@@ -154,13 +128,7 @@ describe("Search Component", () => {
 
     useSearch.mockReturnValue([{ results: [mockProduct] }]);
 
-    render(
-      <MemoryRouter initialEntries={["/search"]}>
-        <Routes>
-          <Route path="/search" element={<Search />} />
-        </Routes>
-      </MemoryRouter>
-    );
+    render(<Search />);
 
     const addToCartButton = screen.getByText("ADD TO CART");
     fireEvent.click(addToCartButton);
