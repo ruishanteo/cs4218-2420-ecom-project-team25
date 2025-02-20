@@ -39,9 +39,29 @@ describe("authHelper hashPassword", () => {
     expect(result).toBeUndefined();
     expect(console.log).toHaveBeenCalledWith(error);
   });
+
+  it("should handle null password in hashPassword", async () => {
+    const password = null;
+
+    const result = await hashPassword(password);
+
+    expect(result).toBeUndefined();
+    expect(console.log).toHaveBeenCalled();
+  });
 });
 
 describe("authHelper comparePassword", () => {
+  let consoleLogSpy;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    consoleLogSpy.mockRestore();
+  });
+
   it("should return true if passwords match", async () => {
     const password = "testPassword";
     const hashedPassword = "hashedPassword";
@@ -76,6 +96,26 @@ describe("authHelper comparePassword", () => {
     const result = await comparePassword(password, hashedPassword);
 
     expect(result).toBeUndefined();
-    expect(console.log).toHaveBeenCalledWith(error);
+    expect(consoleLogSpy).toHaveBeenCalledWith(error);
+  });
+
+  it("should handle null password in comparePassword", async () => {
+    const password = null;
+    const hashedPassword = "hashedPassword";
+
+    const result = await comparePassword(password, hashedPassword);
+
+    expect(result).toBeUndefined();
+    expect(consoleLogSpy).toHaveBeenCalled();
+  });
+
+  it("should handle null hashedPassword in comparePassword", async () => {
+    const password = "testPassword";
+    const hashedPassword = null;
+
+    const result = await comparePassword(password, hashedPassword);
+
+    expect(result).toBeUndefined();
+    expect(consoleLogSpy).toHaveBeenCalled();
   });
 });
