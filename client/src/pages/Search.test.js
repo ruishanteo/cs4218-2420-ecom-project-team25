@@ -170,6 +170,6 @@ describe("Search Component", () => {
       JSON.stringify([mockProduct])
     );
 
-    expect(toast.success).toHaveBeenCalled();
+    expect(toast.success).toHaveBeenCalledWith("Item Added to cart");
   });
 });
