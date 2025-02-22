@@ -36,6 +36,7 @@ const HomePage = () => {
     getAllCategory();
     getTotal();
   }, []);
+
   //get products
   const getAllProducts = async () => {
     try {
@@ -63,6 +64,7 @@ const HomePage = () => {
     if (page === 1) return;
     loadMore();
   }, [page]);
+
   //load more
   const loadMore = async () => {
     try {
@@ -86,6 +88,7 @@ const HomePage = () => {
     }
     setChecked(all);
   };
+
   useEffect(() => {
     if (!checked.length || !radio.length) getAllProducts();
   }, [checked.length, radio.length]);
@@ -106,6 +109,7 @@ const HomePage = () => {
       console.log(error);
     }
   };
+
   return (
     <Layout title={"ALL Products - Best offers "}>
       {/* banner image */}
@@ -123,6 +127,7 @@ const HomePage = () => {
             {categories?.map((c) => (
               <Checkbox
                 key={c._id}
+                data-testid={`${c._id}-category-checkbox`}
                 onChange={(e) => handleFilter(e.target.checked, c._id)}
               >
                 {c.name}
@@ -175,12 +180,14 @@ const HomePage = () => {
                   <div className="card-name-price">
                     <button
                       className="btn btn-info ms-1"
+                      data-testid={`${p._id}-more-details-btn`}
                       onClick={() => navigate(`/product/${p.slug}`)}
                     >
                       More Details
                     </button>
                     <button
                       className="btn btn-dark ms-1"
+                      data-testid={`${p._id}-add-to-cart-btn`}
                       onClick={() => {
                         setCart([...cart, p]);
                         localStorage.setItem(
