@@ -539,6 +539,89 @@ describe('Home Page', () => {
     ).toBeInTheDocument();
   });
 
+  it('should unfilter products by category when the checkbox is unchecked', async () => {
+    axios.post.mockImplementation((url) => {
+      switch (url) {
+        case '/api/v1/product/product-filters':
+          return Promise.resolve({
+            data: {
+              products: [
+                {
+                  _id: '1',
+                  name: 'Test Product 2',
+                  slug: 'test-product-2',
+                  description:
+                    'Another test product description that is longer than 60 characters to test substring',
+                  price: 1149.99,
+                  priceString: '$1,149.99',
+                },
+              ],
+            },
+          });
+        default:
+          return Promise.reject(new Error('URL not found'));
+      }
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path='/' element={<HomePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    // wait for all the products to be rendered first before continuing with the test
+    await waitFor(() => {
+      screen
+        .getAllByText(new RegExp('Test Product *'), 'i')
+        .forEach((product) => {
+          expect(product).toBeInTheDocument();
+        });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Category 1')).toBeInTheDocument();
+    });
+
+    // click the Test Category 1 filter
+    fireEvent.click(screen.getByTestId('1-category-checkbox'));
+
+    // expect the filter function to be called and the filters be applied
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        '/api/v1/product/product-filters',
+        {
+          checked: ['1'],
+          radio: [],
+        }
+      );
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', { name: 'Test Product 1' })
+      ).toBeNull();
+    });
+
+    expect(
+      screen.getByRole('heading', { name: 'Test Product 2' })
+    ).toBeInTheDocument();
+
+    // uncheck the Test Category 1 filter
+    fireEvent.click(screen.getByTestId('1-category-checkbox'));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('heading', { name: 'Test Product 1' })
+      ).not.toBeNull();
+    });
+
+    expect(
+      screen.getByRole('heading', { name: 'Test Product 2' })
+    ).toBeInTheDocument();
+  });
+
   it('should filter products by price', async () => {
     axios.post.mockImplementation((url) => {
       switch (url) {
@@ -780,6 +863,46 @@ describe('Home Page', () => {
     });
 
     expect(logSpy).toHaveBeenCalledWith(err);
+  });
+
+  it('should render no categories if success is false when getting all categories', async () => {
+    // inspired from https://stackoverflow.com/questions/57747392/using-jest-to-mock-multiple-axios-calls
+    axios.get.mockImplementation((url) => {
+      switch (url) {
+        case '/api/v1/category/get-category':
+          return Promise.resolve({
+            data: {
+              success: false,
+              category: mockedCategories.data.category,
+            },
+          });
+        case '/api/v1/product/product-list/1':
+          return Promise.resolve(mockedProductsPageOne);
+        case '/api/v1/product/product-list/2':
+          return Promise.resolve(mockedProductsPageTwo);
+        case '/api/v1/product/product-count':
+          return Promise.resolve(mockedTotal);
+        default:
+          return Promise.reject(new Error('URL not found'));
+      }
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path='/' element={<HomePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith('/api/v1/category/get-category');
+    });
+
+    // make sure none of the categories render
+    expect(screen.getByText('Filter By Category')).toBeInTheDocument();
+    expect(screen.queryByText(mockedCategories.data.category[0])).toBeNull();
+    expect(screen.queryByText(mockedCategories.data.category[1])).toBeNull();
   });
 
   it('should log error if fail to fetch products', async () => {
