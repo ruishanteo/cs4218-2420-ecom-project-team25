@@ -73,6 +73,30 @@ describe('Product Model', () => {
     });
   });
 
+  it('should be able to create a product without a photo', () => {
+    const productModelWithoutPhoto = {
+      ...product1,
+      photo: undefined, 
+    }
+
+    mockingoose(productModel).toReturn(productModelWithoutPhoto, 'save');
+    return productModel.create(productModelWithoutPhoto).then((product) => {
+      expect(JSON.parse(JSON.stringify(product))).toEqual(productModelWithoutPhoto);
+    });
+  });
+
+  it('should be able to create a product without shipping information', () => {
+    const productModelWithoutShipping = {
+      ...product1,
+      shipping: undefined, 
+    }
+
+    mockingoose(productModel).toReturn(productModelWithoutShipping, 'save');
+    return productModel.create(productModelWithoutShipping).then((product) => {
+      expect(JSON.parse(JSON.stringify(product))).toEqual(productModelWithoutShipping);
+    });
+  });
+
   it('should be able to update a product', () => {
     // mock the creation of the prodict first
     mockingoose(productModel).toReturn(product1, 'save');
