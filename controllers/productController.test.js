@@ -71,11 +71,18 @@ let mockedProductData = {
   shipping: true,
 };
 
+// spy on console.log to suppress log statements
+// we can ignore log statements since the error object is returned to us
+// in the API response
+let logSpy;
+
 describe('createProductController', () => {
   let request;
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
     request = {
       fields: {
@@ -99,6 +106,10 @@ describe('createProductController', () => {
 
     fs.readFileSync.mockReturnValue(Buffer.from([1, 2, 3, 4]));
     productModel.prototype.save.mockResolvedValue(mockedProductData);
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should create a new product', async () => {
@@ -268,7 +279,13 @@ describe('getProductController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     productModel.find.mockReturnValue(mockedProductQuery);
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should get products', async () => {
@@ -318,7 +335,13 @@ describe('getSingleProductController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     productModel.findOne.mockReturnValue(mockedProductQuery);
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should get a single product', async () => {
@@ -376,7 +399,13 @@ describe('productPhotoController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     productModel.findById.mockReturnValue(mockedProductQuery);
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should retrieve a product photo', async () => {
@@ -434,7 +463,13 @@ describe('deleteProductController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     productModel.findByIdAndDelete.mockReturnValue(mockedProductQuery);
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should delete a product', async () => {
@@ -475,6 +510,8 @@ describe('updateProductController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     const mockedProductQuery = {
       findByIdAndUpdate: jest.fn().mockResolvedValue(mockedProductData),
       save: jest.fn().mockResolvedValue(mockedProductData),
@@ -505,6 +542,10 @@ describe('updateProductController', () => {
 
     fs.readFileSync.mockReturnValue(Buffer.from([1, 2, 3, 4]));
     productModel.prototype.save.mockResolvedValue(mockedProductData);
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should update a product', async () => {
@@ -686,6 +727,8 @@ describe('productFiltersController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     request = {
       body: {
         checked: ['category 1', 'category 2'],
@@ -694,6 +737,10 @@ describe('productFiltersController', () => {
     };
 
     productModel.find.mockResolvedValue(mockedProductQueryData);
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should filter available products', async () => {
@@ -748,6 +795,12 @@ describe('productFiltersController', () => {
 describe('productCountController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should get count of specified products', async () => {
@@ -794,6 +847,8 @@ describe('productListController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     mockedProductQuery = {
       find: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),
@@ -801,6 +856,10 @@ describe('productListController', () => {
       limit: jest.fn().mockReturnThis(),
       sort: jest.fn().mockResolvedValue([mockedProductData]),
     };
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should list all products on a page with page specified', async () => {
@@ -853,6 +912,8 @@ describe('searchProductController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
     mockedProductQuery = {
       find: jest.fn().mockReturnThis(),
@@ -913,6 +974,10 @@ describe('relatedProductController', () => {
     productModel.find.mockReturnValue(mockedProductQuery);
   });
 
+  afterAll(() => {
+    logSpy.mockRestore();
+  });
+
   it('should retrieve all related products', async () => {
     const request = {
       params: {
@@ -956,13 +1021,19 @@ describe('productCategoryController', () => {
   let request;
 
   beforeEach(() => {
+    jest.clearAllMocks();
+
     request = {
       params: {
         slug: 'product',
       },
     };
 
-    jest.clearAllMocks();
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should return category of the requested item', async () => {
@@ -1008,7 +1079,13 @@ describe('braintreeTokenController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     request = {};
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should obtain braintree controller token', async () => {
@@ -1055,6 +1132,8 @@ describe('brainTreePaymentController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
     request = {
       body: {
         nonce: 'nonce',
@@ -1066,6 +1145,10 @@ describe('brainTreePaymentController', () => {
     };
 
     orderModel.prototype.save.mockResolvedValue(txnSuccess);
+  });
+
+  afterAll(() => {
+    logSpy.mockRestore();
   });
 
   it('should be able to make payment', async () => {
