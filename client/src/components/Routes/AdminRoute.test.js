@@ -6,7 +6,7 @@ import Spinner from '../Spinner';
 import axios from 'axios';
 import { useAuth } from '../../context/auth';
 import AdminRoute from './AdminRoute';
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, screen } from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('../../context/auth', () => ({
@@ -24,6 +24,7 @@ jest.mock('react', () => ({
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: jest.fn(),
+  useLocation: jest.fn(),
 }));
 
 let consoleSpy;
@@ -39,7 +40,14 @@ describe('AdminRoute', () => {
   });
 
   it('should return Spinner by default if no auth token is present', () => {
+    useAuth.mockReturnValueOnce([{}, jest.fn()]);
     expect(AdminRoute()).toStrictEqual(<Spinner />);
+
+    render(<AdminRoute />);
+
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+    expect(axios.get).not.toHaveBeenCalled();
+    expect(consoleSpy).not.toHaveBeenCalled();
   });
 
   it('should return Outlet if auth token is present and authCheck returns false', () => {
@@ -47,24 +55,33 @@ describe('AdminRoute', () => {
     axios.get.mockResolvedValueOnce({ data: { ok: false } });
 
     expect(AdminRoute()).toStrictEqual(<Spinner />);
+
+    render(<AdminRoute />);
+
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+    expect(axios.get).toHaveBeenCalledWith('/api/v1/auth/admin-auth');
+    expect(consoleSpy).not.toHaveBeenCalled();
   });
 
-  it('should return Spinner if auth token is present and authCheck returns true', () => {
+  it('should return Outlet if auth token is present and authCheck returns true', () => {
     useAuth.mockReturnValueOnce([{ token: 'token' }, jest.fn()]);
     axios.get.mockResolvedValueOnce({ data: { ok: true } });
     useState.mockReturnValueOnce([true, jest.fn()]);
 
     expect(AdminRoute()).toStrictEqual(<Outlet />);
+
+    render(<AdminRoute />);
+
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+    expect(axios.get).toHaveBeenCalledWith('/api/v1/auth/admin-auth');
+    expect(consoleSpy).not.toHaveBeenCalled();
   });
 
   it('should not crash if get errors out', async () => {
     const err = new Error('Failed to query auth status');
     axios.get.mockRejectedValueOnce(err);
-
     useAuth.mockReturnValueOnce([{ token: 'token' }, jest.fn()]);
-
-    // force the render of the Outlet component here to test exceptions
-    useState.mockReturnValueOnce([true, jest.fn()]);
+    
     render(<AdminRoute />);
 
     await waitFor(() => {
