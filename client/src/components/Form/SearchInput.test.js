@@ -11,9 +11,13 @@ jest.mock('../../context/search', () => ({
   useSearch: jest.fn(() => [{ keyword: '' }, jest.fn()]),
 }));
 
+// reused from CategoryProduct.test.js
+let logSpy;
+
 describe('SearchInput Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   it('render search input', () => {
@@ -32,7 +36,9 @@ describe('SearchInput Component', () => {
   it('inputs should be initially empty', () => {
     render(
       <MemoryRouter>
-        <SearchInput />
+        <Routes>
+          <Route path='/' element={<SearchInput />} />
+        </Routes>
       </MemoryRouter>
     );
 
@@ -81,11 +87,11 @@ describe('SearchInput Component', () => {
     // purposefully not mock the axios.get to get a destructuring error
     render(
       <MemoryRouter>
-        <SearchInput />
+        <Routes>
+          <Route path='/' element={<SearchInput />} />
+        </Routes>
       </MemoryRouter>
     );
-
-    const log = jest.spyOn(console, 'log').mockImplementationOnce(() => {});
 
     fireEvent.change(screen.getByPlaceholderText('Search'), {
       target: { value: 'test search' },
@@ -97,6 +103,6 @@ describe('SearchInput Component', () => {
       expect(axios.get).toHaveBeenCalled();
     });
 
-    expect(log).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalled();
   });
 });
