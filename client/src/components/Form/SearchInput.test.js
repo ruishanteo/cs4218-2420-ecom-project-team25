@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import axios from 'axios';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import '@testing-library/jest-dom/extend-expect';
@@ -11,40 +11,52 @@ jest.mock('../../context/search', () => ({
   useSearch: jest.fn(() => [{ keyword: '' }, jest.fn()]),
 }));
 
+// reused from CategoryProduct.test.js
+let logSpy;
+
 describe('SearchInput Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   it('render search input', () => {
-    const { getByPlaceholderText, getByText } = render(
+    render(
       <MemoryRouter>
-        <SearchInput />
+        <Routes>
+          <Route path='/' element={<SearchInput />} />
+        </Routes>
       </MemoryRouter>
     );
 
-    expect(getByPlaceholderText('Search')).toBeInTheDocument();
-    expect(getByText('Search')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search')).toBeInTheDocument();
+    expect(screen.getByText('Search')).toBeInTheDocument();
   });
 
   it('inputs should be initially empty', () => {
-    const { getByPlaceholderText, getByText } = render(
+    render(
       <MemoryRouter>
-        <SearchInput />
+        <Routes>
+          <Route path='/' element={<SearchInput />} />
+        </Routes>
       </MemoryRouter>
     );
 
-    expect(getByPlaceholderText('Search').value).toBe('');
+    expect(screen.getByPlaceholderText('Search').value).toBe('');
   });
 
   it('should allow typing search keyword', () => {
-    const { getByPlaceholderText, getByText } = render(
+    render(
       <MemoryRouter>
-        <SearchInput />
+        <Routes>
+          <Route path='/' element={<SearchInput />} />
+        </Routes>
       </MemoryRouter>
     );
 
-    fireEvent.change(getByPlaceholderText('Search'), { target: { value: 'test search' } });
+    fireEvent.change(screen.getByPlaceholderText('Search'), {
+      target: { value: 'test search' },
+    });
   });
 
   it('should submit the form', async () => {
@@ -52,44 +64,45 @@ describe('SearchInput Component', () => {
       data: [],
     });
 
-    const { getByPlaceholderText, getByText } = render(
+    render(
       <MemoryRouter>
-        <SearchInput />
+        <Routes>
+          <Route path='/' element={<SearchInput />} />
+        </Routes>
       </MemoryRouter>
     );
-    
 
-    fireEvent.change(getByPlaceholderText('Search'), {
+    fireEvent.change(screen.getByPlaceholderText('Search'), {
       target: { value: 'test search' },
     });
 
-    fireEvent.click(getByText('Search'));
+    fireEvent.click(screen.getByText('Search'));
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalled()
+      expect(axios.get).toHaveBeenCalled();
     });
   });
 
   it('should log error if an error occurs', async () => {
     // purposefully not mock the axios.get to get a destructuring error
-    const { getByPlaceholderText, getByText } = render(
+    render(
       <MemoryRouter>
-        <SearchInput />
+        <Routes>
+          <Route path='/' element={<SearchInput />} />
+        </Routes>
       </MemoryRouter>
     );
 
-    const log = jest.spyOn(console, 'log').mockImplementationOnce(() => {});
-
-    fireEvent.change(getByPlaceholderText('Search'), {
+    fireEvent.change(screen.getByPlaceholderText('Search'), {
       target: { value: 'test search' },
     });
 
-    fireEvent.click(getByText('Search'));
+    fireEvent.click(screen.getByText('Search'));
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalled();
     });
 
-    expect(log).toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalled();
   });
 });
