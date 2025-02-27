@@ -17,7 +17,7 @@ describe("authHelper hashPassword", () => {
     consoleLogSpy.mockRestore();
   });
 
-  it("should hash password successfully", async () => {
+  it("should call hash function and return hashed password", async () => {
     const password = "testPassword";
     const hashedPassword = "hashedPassword";
     bcrypt.hash.mockResolvedValue(hashedPassword);
@@ -62,7 +62,7 @@ describe("authHelper comparePassword", () => {
     consoleLogSpy.mockRestore();
   });
 
-  it("should return true if passwords match", async () => {
+  it("should call compare function and return result if passwords match", async () => {
     const password = "testPassword";
     const hashedPassword = "hashedPassword";
 
@@ -74,7 +74,7 @@ describe("authHelper comparePassword", () => {
     expect(bcrypt.compare).toHaveBeenCalledTimes(1);
   });
 
-  it("should return false if passwords do not match", async () => {
+  it("should call compare function and return result if passwords do not match", async () => {
     const password = "testPassword";
     const hashedPassword = "hashedPassword";
 
