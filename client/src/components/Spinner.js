@@ -18,6 +18,7 @@ const Spinner = ({ path = "login" }) => {
     <>
       <div
         className="d-flex flex-column justify-content-center align-items-center"
+        data-testid="spinner"
         style={{ height: "100vh" }}
       >
         <h1 className="Text-center">redirecting to you in {count} second </h1>
