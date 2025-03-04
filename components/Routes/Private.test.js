@@ -1,10 +1,12 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Spinner from '../Spinner';
 import axios from 'axios';
 import { useAuth } from '../../context/auth';
 import PrivateRoute from './Private';
+import { render, screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
 
 jest.mock('axios');
 jest.mock('../../context/auth', () => ({
@@ -19,23 +21,72 @@ jest.mock('react', () => ({
   useState: jest.fn(() => [false, jest.fn()]),
 }));
 
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: jest.fn(),
+  useLocation: jest.fn(),
+}));
+
+let consoleSpy;
+
 describe('Private', () => {
-  it('should return Spinner by default if no auth token is present', () => {
-    expect(PrivateRoute()).toStrictEqual(<Spinner path='' />);
+  beforeEach(() => {
+    jest.clearAllMocks();
+    consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
   });
 
-  it('should return Outlet if auth token is present and authCheck returns false', () => {
+  afterAll(() => {
+    consoleSpy.mockRestore();
+  });
+
+  it('should return Spinner by default if no auth token is present', () => {
+    useAuth.mockReturnValueOnce([{}, jest.fn()]);
+    expect(PrivateRoute()).toStrictEqual(<Spinner />);
+
+    render(<PrivateRoute />);
+
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+    expect(axios.get).not.toHaveBeenCalled();
+    expect(consoleSpy).not.toHaveBeenCalled();
+  });
+
+  it('should return Spinner if auth token is present and authCheck returns false', async () => {
     useAuth.mockReturnValueOnce([{ token: 'token' }, jest.fn()]);
     axios.get.mockResolvedValueOnce({ data: { ok: false } });
 
-    expect(PrivateRoute()).toStrictEqual(<Spinner path='' />);
+    expect(PrivateRoute()).toStrictEqual(<Spinner />);
+
+    render(<PrivateRoute />);
+
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+    expect(axios.get).toHaveBeenCalledWith('/api/v1/auth/user-auth');
+    expect(consoleSpy).not.toHaveBeenCalled();
   });
 
-  it('should return Spinner if auth token is present and authCheck returns true', () => {
+  it('should return Outlet if auth token is present and authCheck returns true', () => {
     useAuth.mockReturnValueOnce([{ token: 'token' }, jest.fn()]);
     axios.get.mockResolvedValueOnce({ data: { ok: true } });
     useState.mockReturnValueOnce([true, jest.fn()]);
 
     expect(PrivateRoute()).toStrictEqual(<Outlet />);
+
+    render(<PrivateRoute />);
+
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+    expect(axios.get).toHaveBeenCalledWith('/api/v1/auth/user-auth');
+    expect(consoleSpy).not.toHaveBeenCalled();
+  });
+
+  it('should not crash if get errors out', async () => {
+    const err = new Error('Failed to query auth status');
+    axios.get.mockRejectedValueOnce(err);
+    useAuth.mockReturnValueOnce([{ token: 'token' }, jest.fn()]);
+    render(<PrivateRoute />);
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith('/api/v1/auth/user-auth');
+    });
+
+    expect(consoleSpy).toHaveBeenCalledWith(err);
   });
 });
