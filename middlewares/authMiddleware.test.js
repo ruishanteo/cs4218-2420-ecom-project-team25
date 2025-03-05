@@ -28,7 +28,10 @@ describe("requireSignIn authMiddlware", () => {
         authorization: "Bearer token",
       },
     };
-    mockRes = {}; // doesnt use res
+    mockRes = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
     mockNext = jest.fn(); // mock the next fn to verify if it is called
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {}); // mock console.log to suppress output
   });
@@ -61,6 +64,23 @@ describe("requireSignIn authMiddlware", () => {
 
     expect(mockNext).not.toHaveBeenCalled();
     expect(consoleLogSpy).toHaveBeenCalledWith(mockError);
+    expect(mockRes.status).toHaveBeenCalledWith(401);
+    expect(mockRes.send).toHaveBeenCalled();
+  });
+
+  it("should log an error if authorization header is missing", async () => {
+    JWT.verify.mockImplementationOnce((token) => {
+      if (!token) throw new Error("jwt must be provided");
+      return { _id: "test" };
+    });
+
+    const reqWithNoAuth = { headers: {} };
+
+    await requireSignIn(reqWithNoAuth, mockRes, mockNext);
+
+    expect(JWT.verify).toHaveBeenCalled();
+    expect(mockNext).not.toHaveBeenCalled();
+    expect(mockRes.status).toHaveBeenCalledWith(401);
   });
 });
 
@@ -151,5 +171,34 @@ describe("isAdmin authMiddlware", () => {
       error: "error",
       message: "Error in admin middleware",
     });
+  });
+
+  it("should return a 401 error if user is not found", async () => {
+    const mockUserId = "empty";
+    mockReq = {
+      user: {
+        _id: mockUserId,
+      },
+    };
+    userModel.findById.mockResolvedValueOnce(null);
+
+    await isAdmin(mockReq, mockRes, mockNext);
+
+    expect(userModel.findById).toHaveBeenCalledWith(mockUserId);
+    expect(consoleLogSpy).toHaveBeenCalled();
+    expect(mockRes.status).toHaveBeenCalledWith(401);
+    expect(mockRes.send).toHaveBeenCalled();
+  });
+
+  it("should handle missing user id in request", async () => {
+    mockReq = {
+      user: {},
+    };
+
+    await isAdmin(mockReq, mockRes, mockNext);
+
+    expect(mockNext).not.toHaveBeenCalled();
+    expect(consoleLogSpy).toHaveBeenCalled();
+    expect(mockRes.status).toHaveBeenCalledWith(401);
   });
 });
