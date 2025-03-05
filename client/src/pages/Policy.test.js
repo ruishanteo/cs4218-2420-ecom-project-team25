@@ -29,5 +29,6 @@ describe("Policy Page", () => {
     const image = screen.getByAltText("contactus");
     expect(image).toBeInTheDocument();
     expect(image).toHaveAttribute("src", "/images/contactus.jpeg");
+    expect(screen.getByTestId("policy-container")).toBeInTheDocument();
   });
 });

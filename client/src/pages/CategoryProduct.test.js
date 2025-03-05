@@ -79,8 +79,6 @@ describe("Category Product Page", () => {
     Object.defineProperty(window, "localStorage", {
       value: {
         setItem: jest.fn(),
-        getItem: jest.fn(),
-        removeItem: jest.fn(),
       },
       writable: true,
     });
@@ -122,6 +120,10 @@ describe("Category Product Page", () => {
       ).toBeInTheDocument();
     });
 
+    expect(
+      screen.getByText(`${mockProducts.length} result found`)
+    ).toBeInTheDocument();
+
     mockProducts.forEach((product) => {
       const productName = screen.getByText(product.name);
       expect(productName).toBeInTheDocument();
@@ -135,7 +137,7 @@ describe("Category Product Page", () => {
     expect(moreDetailsButton.length).toBe(mockProducts.length);
   });
 
-  it("should render no products in Category Product page", async () => {
+  it("should not render products in Category Product page if they dont exist", async () => {
     axios.get.mockResolvedValueOnce({
       data: {
         products: [],
@@ -156,6 +158,8 @@ describe("Category Product Page", () => {
         screen.getByText(new RegExp(`Category - ${mockCategory.name}`, "i"))
       ).toBeInTheDocument();
     });
+
+    expect(screen.getByText(`0 result found`)).toBeInTheDocument();
 
     const noProduct = screen.queryByRole("img");
     expect(noProduct).not.toBeInTheDocument();
@@ -182,7 +186,7 @@ describe("Category Product Page", () => {
     expect(consoleLogSpy).toHaveBeenCalledWith(mockError);
   });
 
-  it("should fetch products of category if slug exists", async () => {
+  it("should call api to fetch products if slug exists", async () => {
     render(
       <MemoryRouter initialEntries={["/category/test-category"]}>
         <Routes>
@@ -247,7 +251,7 @@ describe("Category Product Page", () => {
     });
   });
 
-  it("should add product to cart on click", async () => {
+  it("should add product to cart on click when empty cart", async () => {
     const setCart = jest.fn();
     useCart.mockReturnValue([[], setCart]);
 
@@ -284,8 +288,6 @@ describe("Category Product Page", () => {
       `${mockProducts[idxProductToAdd]._id}-add-to-cart-btn`
     );
 
-    console.log(addToCartButton);
-
     fireEvent.click(addToCartButton);
 
     expect(setCart).toHaveBeenCalledWith([mockProducts[idxProductToAdd]]);
@@ -294,6 +296,70 @@ describe("Category Product Page", () => {
       expect(localStorage.setItem).toHaveBeenCalledWith(
         "cart",
         JSON.stringify([mockProducts[idxProductToAdd]])
+      );
+    });
+
+    expect(toast.success).toHaveBeenCalled();
+  });
+
+  it("should add product to cart on click when cart is not empty", async () => {
+    const mockCart = [
+      {
+        _id: "2",
+        name: "Test Product 2",
+        slug: "test-product-2",
+        description:
+          "Another test product description that is longer than 60 characters to test substring",
+        price: 149.99,
+      },
+    ];
+    const setCart = jest.fn();
+    useCart.mockReturnValue([mockCart, setCart]);
+
+    const idxProductToAdd = 0;
+
+    axios.get.mockResolvedValueOnce({
+      data: {
+        products: mockProducts,
+        category: mockCategory,
+      },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/category/test-category"]}>
+        <Routes>
+          <Route path="/category/:slug" element={<CategoryProduct />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        `/api/v1/product/product-category/${mockSlug}`
+      );
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(new RegExp(`Category - ${mockCategory.name}`, "i"))
+      ).toBeInTheDocument();
+    });
+
+    const addToCartButton = screen.getByTestId(
+      `${mockProducts[idxProductToAdd]._id}-add-to-cart-btn`
+    );
+
+    fireEvent.click(addToCartButton);
+
+    expect(setCart).toHaveBeenCalledWith([
+      ...mockCart,
+      mockProducts[idxProductToAdd],
+    ]);
+
+    await waitFor(() => {
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        "cart",
+        JSON.stringify([...mockCart, mockProducts[idxProductToAdd]])
       );
     });
 

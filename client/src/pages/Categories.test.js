@@ -50,7 +50,7 @@ describe("Categories Page", () => {
     });
   });
 
-  it("should not render categories in Category page", () => {
+  it("should not render categories in Category page if no categories exist", () => {
     useCategory.mockReturnValue([[], jest.fn()]);
 
     renderWithRouter(<Categories />);
