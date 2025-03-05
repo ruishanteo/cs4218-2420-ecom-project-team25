@@ -89,8 +89,8 @@ describe("Cart Page when user is authenticated", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useCart.mockReturnValue([mockCartItems, jest.fn()]);
-    useAuth.mockReturnValue([{ user: mockUser, token: mockToken }, jest.fn()]);
+    useCart.mockReturnValue([mockCartItems, jest.fn()]); // cart is not empty
+    useAuth.mockReturnValue([{ user: mockUser, token: mockToken }, jest.fn()]); // user is authenticated
     useNavigate.mockReturnValue(mockedNavigator);
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
   });
@@ -253,7 +253,7 @@ describe("Cart Page when user is not authenticated", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     useCart.mockReturnValue([mockCartItems, jest.fn()]);
-    useAuth.mockReturnValue([{ user: null, token: null }, jest.fn()]);
+    useAuth.mockReturnValue([{ user: null, token: null }, jest.fn()]); // user is not authenticated
     useNavigate.mockReturnValue(mockedNavigator);
     consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
   });
@@ -335,17 +335,18 @@ describe("CartPage checkout process", () => {
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith("/api/v1/product/braintree/token");
     });
-
     const dropIn = await screen.findByTestId("mock-dropin");
     expect(dropIn).toBeInTheDocument();
 
+    // simulate user clicking on the drop-in button
     fireEvent.click(await screen.findByText("DropIn mock"));
 
     const paymentButton = await screen.findByRole("button", {
       name: /make payment/i,
     });
-
     expect(paymentButton).toBeEnabled();
+
+    // simulate user clicking on the payment button
     fireEvent.click(paymentButton);
 
     await waitFor(() => {
@@ -384,12 +385,15 @@ describe("CartPage checkout process", () => {
     const dropIn = await screen.findByTestId("mock-dropin");
     expect(dropIn).toBeInTheDocument();
 
+    // simulate user clicking on the drop-in button
     fireEvent.click(await screen.findByText("DropIn mock"));
 
     const paymentButton = await screen.findByRole("button", {
       name: /make payment/i,
     });
     expect(paymentButton).toBeEnabled();
+
+    // simulate user clicking on the payment button
     fireEvent.click(paymentButton);
 
     await waitFor(() => {
