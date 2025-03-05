@@ -69,7 +69,7 @@ describe("Orders Page", () => {
     consoleLogSpy.mockRestore();
   });
 
-  it("should get and display orders", async () => {
+  it("should get and display orders and their products", async () => {
     useAuth.mockReturnValue(
       [
         {

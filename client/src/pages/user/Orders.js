@@ -38,7 +38,7 @@ const Orders = () => {
                         <th scope="col">#</th>
                         <th scope="col">Status</th>
                         <th scope="col">Buyer</th>
-                        <th scope="col"> date</th>
+                        <th scope="col">Date</th>
                         <th scope="col">Payment</th>
                         <th scope="col">Quantity</th>
                       </tr>
@@ -63,7 +63,7 @@ const Orders = () => {
                             className="card-img-top"
                             alt={p.name}
                             width="100px"
-                            height={"100px"}
+                            height="100px"
                           />
                         </div>
                         <div className="col-md-8">
