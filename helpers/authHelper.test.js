@@ -43,6 +43,8 @@ describe("authHelper hashPassword", () => {
   it("should handle null password in hashPassword", async () => {
     const password = null;
 
+    bcrypt.hash.mockRejectedValue(new Error("Cannot hash null"));
+
     const result = await hashPassword(password);
 
     expect(result).toBeUndefined();
@@ -103,6 +105,8 @@ describe("authHelper comparePassword", () => {
     const password = null;
     const hashedPassword = "hashedPassword";
 
+    bcrypt.compare.mockRejectedValue(new Error("Invalid inputs"));
+
     const result = await comparePassword(password, hashedPassword);
 
     expect(result).toBeUndefined();
@@ -112,6 +116,7 @@ describe("authHelper comparePassword", () => {
   it("should handle null hashedPassword in comparePassword", async () => {
     const password = "testPassword";
     const hashedPassword = null;
+    bcrypt.compare.mockRejectedValue(new Error("Invalid inputs"));
 
     const result = await comparePassword(password, hashedPassword);
 
