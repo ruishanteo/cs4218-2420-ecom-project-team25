@@ -33,10 +33,16 @@ describe("Contact Page", () => {
     expect(image).toHaveAttribute("src", "/images/contactus.jpeg");
 
     expect(screen.getByText(/CONTACT US/i)).toBeInTheDocument();
-    expect(screen.getByText(/www\.help@ecommerceapp\.com/)).toBeInTheDocument();
-    expect(screen.getByText(/012-3456789/)).toBeInTheDocument();
-    expect(
-      screen.getByText(/1800-0000-0000 \(toll free\)/)
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("contact-email")).toHaveTextContent(
+      "www.help@ecommerceapp.com"
+    );
+
+    expect(screen.getByTestId("contact-phone")).toHaveTextContent(
+      "012-3456789"
+    );
+
+    expect(screen.getByTestId("contact-support")).toHaveTextContent(
+      "1800-0000-0000 (toll free)"
+    );
   });
 });

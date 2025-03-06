@@ -122,9 +122,9 @@ describe("Cart Page when user is authenticated", () => {
       mockCartItems.length
     );
 
-    expect(
-      screen.getByText(new RegExp(`Total.*${mockCartItems[0].price}`, "i"))
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("total-price-header")).toHaveTextContent(
+      `${mockCartItems[0].price}`
+    );
   });
 
   it("should display correct number of cart items for more than 1 item", () => {
@@ -162,18 +162,16 @@ describe("Cart Page when user is authenticated", () => {
     );
 
     const mockTotal = mockCartItems.reduce((acc, item) => acc + item.price, 0);
-    expect(
-      screen.getByText(new RegExp(`Total.*${mockTotal}`, "i"))
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("total-price-header")).toHaveTextContent(
+      `${mockTotal}`
+    );
   });
 
   it("should display empty cart if cart is empty", () => {
     useCart.mockReturnValue([[], jest.fn()]);
     renderWithRouter(<CartPage />);
     expect(screen.getByText(/your cart is empty/i)).toBeInTheDocument();
-    expect(
-      screen.getByText(new RegExp(`Total.*0.00`, "i"))
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("total-price-header")).toHaveTextContent(`0.00`);
   });
 
   it("should handle total price calcuation error gracefully", () => {

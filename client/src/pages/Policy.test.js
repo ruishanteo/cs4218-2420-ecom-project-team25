@@ -30,5 +30,7 @@ describe("Policy Page", () => {
     expect(image).toBeInTheDocument();
     expect(image).toHaveAttribute("src", "/images/contactus.jpeg");
     expect(screen.getByTestId("policy-container")).toBeInTheDocument();
+    const policyTexts = screen.getAllByTestId("policy-text");
+    expect(policyTexts.length).toBeGreaterThan(0);
   });
 });
