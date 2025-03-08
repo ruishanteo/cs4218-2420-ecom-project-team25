@@ -39,8 +39,8 @@ module.exports = {
   coverageDirectory: "coverage/frontend",
   coverageThreshold: {
     global: {
-      lines: 15,
-      functions: 15,
+      lines: 80,
+      functions: 80,
     },
   },
 };
