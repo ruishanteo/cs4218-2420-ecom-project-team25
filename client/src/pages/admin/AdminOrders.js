@@ -122,7 +122,9 @@ const AdminOrders = () => {
                     <div className="row mb-2 p-3 card flex-row" key={p._id}>
                       <div className="col-md-4">
                         <img
-                          src={`${API_URLS.GET_PRODUCT_PHOTO}/${p._id}`}
+                          src={`${API_URLS.GET_PRODUCT_PHOTO}/${
+                            p._id
+                          }?id=${Date.now()}`}
                           className="card-img-top"
                           alt={p.name}
                           width="100px"

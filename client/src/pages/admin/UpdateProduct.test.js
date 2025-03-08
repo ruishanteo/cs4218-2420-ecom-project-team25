@@ -151,7 +151,9 @@ describe("UpdateProduct", () => {
       })
     ).toHaveAttribute(
       "src",
-      `${API_URLS.GET_PRODUCT_PHOTO}/${mockProduct._id}`
+      expect.stringMatching(
+        new RegExp(`${API_URLS.GET_PRODUCT_PHOTO}/${mockProduct._id}.*`)
+      )
     );
     expect(axios.get).toHaveBeenCalledWith(
       `${API_URLS.GET_PRODUCT}/${mockParams.slug}`
