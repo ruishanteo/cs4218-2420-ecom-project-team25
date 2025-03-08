@@ -162,7 +162,10 @@ const UpdateProduct = () => {
                 ))}
               </Select>
               <div className="mb-3">
-                <label className="btn btn-outline-secondary col-md-12">
+                <label
+                  className="btn btn-outline-secondary col-md-12"
+                  htmlFor="upload-photo"
+                >
                   {photo
                     ? photo.name
                     : UPDATE_PRODUCT_STRINGS.UPLOAD_PHOTO_ACTION}
@@ -173,6 +176,7 @@ const UpdateProduct = () => {
                   accept="image/*"
                   onChange={(e) => setPhoto(e.target.files[0])}
                   aria-label={UPDATE_PRODUCT_STRINGS.UPLOAD_PHOTO_ACTION}
+                  id="upload-photo"
                   hidden
                 />
               </div>
@@ -189,7 +193,9 @@ const UpdateProduct = () => {
                 ) : (
                   <div className="text-center">
                     <img
-                      src={`${API_URLS.GET_PRODUCT_PHOTO}/${id}`}
+                      src={`${
+                        API_URLS.GET_PRODUCT_PHOTO
+                      }/${id}?id=${Date.now()}`}
                       alt={UPDATE_PRODUCT_STRINGS.PHOTO_PLACEHODER}
                       height={"200px"}
                       className="img img-responsive"
