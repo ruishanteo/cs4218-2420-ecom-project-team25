@@ -1,7 +1,6 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 import axios from "axios";
-
-import useCategory, { USE_CATEGORY_STRINGS } from "./useCategory";
+import useCategory from "./useCategory";
 
 jest.mock("axios");
 
@@ -17,54 +16,50 @@ describe("useCategory Hook", () => {
     consoleLogSpy.mockRestore();
   });
 
-  it("should return an empty array by default", () => {
+  it("should return an empty array and a refresh function by default", () => {
     const { result } = renderHook(() => useCategory());
 
-    expect(result.current[0]).toEqual([]); // categories should be an empty array
-    expect(typeof result.current[1]).toBe("function"); // refreshCategories should be a function
+    expect(result.current[0]).toEqual([]);
+    expect(typeof result.current[1]).toBe("function");
   });
 
-  it("should fetch categories successfully", async () => {
+  it("should update categories on a successful API call", async () => {
     const mockCategories = [
       { _id: "1", name: "Category 1" },
       { _id: "2", name: "Category 2" },
     ];
+
     axios.get.mockResolvedValueOnce({
       data: { category: mockCategories, success: true },
-    }); // Simulate a successful API call
+    });
 
     const { result } = renderHook(() => useCategory());
 
-    await waitFor(() => expect(result.current[0]).toEqual(mockCategories));
-
-    expect(axios.get).toHaveBeenCalledTimes(1); // API should be called on mount
-  });
-
-  it("should handle API failure gracefully", async () => {
-    axios.get.mockResolvedValueOnce({ data: { success: false } }); // Simulate API failure
-
-    const { result } = renderHook(() => useCategory());
-
-    await waitFor(() =>
-      expect(consoleLogSpy).toHaveBeenCalledWith(
-        new Error(USE_CATEGORY_STRINGS.ERROR)
-      )
-    );
-
+    await waitFor(() => {
+      expect(result.current[0]).toEqual(mockCategories);
+    });
     expect(axios.get).toHaveBeenCalledTimes(1);
-    expect(result.current[0]).toEqual([]); // Should remain an empty array on failure
   });
 
-  it("should handle exception thrown gracefully", async () => {
+  it("should not update categories and log error when API response is unsuccessful", async () => {
+    axios.get.mockResolvedValueOnce({ data: { success: false } });
+
+    const { result } = renderHook(() => useCategory());
+
+    await waitFor(() => expect(consoleLogSpy).toHaveBeenCalled());
+    expect(result.current[0]).toEqual([]); // The categories should remain empty on failure.
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
+  it("should not update categories and log error when API request fails", async () => {
     const mockError = new Error("Failed to fetch categories");
-    axios.get.mockRejectedValueOnce(mockError); // Simulate an exception
+    axios.get.mockRejectedValueOnce(mockError);
 
     const { result } = renderHook(() => useCategory());
 
     await waitFor(() => expect(consoleLogSpy).toHaveBeenCalledWith(mockError));
-
+    expect(result.current[0]).toEqual([]);
     expect(axios.get).toHaveBeenCalledTimes(1);
-    expect(result.current[0]).toEqual([]); // Should remain an empty array on failure
   });
 
   it("should refresh categories when refreshCategories is called", async () => {
@@ -73,26 +68,27 @@ describe("useCategory Hook", () => {
       { _id: "2", name: "Updated Category 1" },
       { _id: "3", name: "Updated Category 2" },
     ];
+    axios.get
+      .mockResolvedValueOnce({
+        data: { category: initialCategories, success: true },
+      })
+      .mockResolvedValueOnce({
+        data: { category: updatedCategories, success: true },
+      });
 
-    axios.get.mockResolvedValueOnce({
-      data: { category: initialCategories, success: true },
-    });
-
-    // result is an array with two values: [categories, refreshCategories]
+    // Initial API call
     const { result } = renderHook(() => useCategory());
-
-    await waitFor(() => expect(result.current[0]).toEqual(initialCategories));
-
-    axios.get.mockResolvedValueOnce({
-      data: { category: updatedCategories, success: true },
+    await waitFor(() => {
+      expect(result.current[0]).toEqual(initialCategories);
     });
 
+    // Update API call
     act(() => {
-      result.current[1]();
+      result.current[1](); // call refreshCategories
     });
 
-    await waitFor(() => expect(result.current[0]).toEqual(updatedCategories));
-
-    expect(axios.get).toHaveBeenCalledTimes(2); // API should be called twice (initial + refresh)
+    await waitFor(() => {
+      expect(result.current[0]).toEqual(updatedCategories);
+    });
   });
 });

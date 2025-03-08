@@ -113,14 +113,14 @@ const CreateCategory = () => {
                     <th scope="col">Actions</th>
                   </tr>
                 </thead>
-                <tbody data-testid="create-category-list">
+                <tbody>
                   {categories?.map((c) => (
-                    <tr key={c._id} data-testid={`create-category-${c._id}`}>
+                    <tr key={c._id}>
                       <td>{c.name}</td>
                       <td>
                         <button
                           className="btn btn-primary ms-2"
-                          data-testid={`update-category-${c._id}`}
+                          aria-label={`update ${c.name} category`}
                           onClick={() => {
                             setVisible(true);
                             setUpdatedName(c.name);
@@ -131,7 +131,7 @@ const CreateCategory = () => {
                         </button>
                         <button
                           className="btn btn-danger ms-2"
-                          data-testid={`delete-category-${c._id}`}
+                          aria-label={`delete ${c.name} category`}
                           onClick={() => {
                             handleDelete(c._id);
                           }}
@@ -149,7 +149,7 @@ const CreateCategory = () => {
               footer={null}
               open={visible}
             >
-              <div data-testid="update-category-modal">
+              <div>
                 <CategoryForm
                   value={updatedName}
                   setValue={setUpdatedName}

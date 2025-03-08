@@ -19,7 +19,7 @@ jest.mock("../context/search", () => ({
 }));
 
 jest.mock("../components/Layout", () => ({ children }) => (
-  <div data-testid="layout">{children}</div>
+  <div>{children}</div>
 ));
 
 jest.mock("react-router-dom", () => ({
@@ -45,8 +45,9 @@ describe("Search Component", () => {
 
     render(<Search />);
 
-    expect(screen.getByTestId("search-no-results")).toBeInTheDocument();
-    expect(screen.getByText("No Products Found")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /no products found/i })
+    ).toBeInTheDocument();
   });
 
   it("should render the search component with results", () => {
@@ -54,24 +55,19 @@ describe("Search Component", () => {
       { _id: "1", name: "Product 1", description: "Description 1", price: 100 },
       { _id: "2", name: "Product 2", description: "Description 2", price: 200 },
     ];
-    const firstId = mockProducts[0]._id;
-
     useSearch.mockReturnValue([{ results: mockProducts }]);
 
     render(<Search />);
 
-    expect(screen.getByTestId("search-results")).toBeInTheDocument();
-    expect(screen.getByText("Found 2")).toBeInTheDocument();
-    expect(screen.getAllByTestId(/search-product-/)).toHaveLength(
-      mockProducts.length
-    );
+    expect(
+      screen.getByRole("heading", { name: /found 2/i })
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("img")).toHaveLength(mockProducts.length);
 
-    expect(screen.getByTestId(`product-name-${firstId}`)).toHaveTextContent(
-      mockProducts[0].name
-    );
-    expect(screen.getByTestId(`product-price-${firstId}`)).toHaveTextContent(
-      `$ ${mockProducts[0].price}`
-    );
+    expect(
+      screen.getByRole("heading", { name: mockProducts[0].name })
+    ).toBeInTheDocument();
+    expect(screen.getByText(`$ ${mockProducts[0].price}`)).toBeInTheDocument();
   });
 
   it("should correctly truncate product descriptions", () => {
@@ -87,8 +83,8 @@ describe("Search Component", () => {
     render(<Search />);
 
     expect(
-      screen.getByTestId(`product-truncated-desc-${mockProduct._id}`)
-    ).toHaveTextContent(`${mockProduct.description.substring(0, 30)}...`);
+      screen.getByText(`${mockProduct.description.substring(0, 30)}...`)
+    ).toBeInTheDocument();
   });
 
   it("should navigate to the correct product page when 'More Details' is clicked", async () => {

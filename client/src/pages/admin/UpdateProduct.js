@@ -11,18 +11,19 @@ const { Option } = Select;
 export const UPDATE_PRODUCT_STRINGS = {
   UPDATE_PRODUCT_ACTION: "UPDATE PRODUCT",
   DELETE_PRODUCT_ACTION: "DELETE PRODUCT",
-  SELECT_CATEGORY_ACTION: "Select a category",
+  SELECT_CATEGORY_ACTION: "Product category",
   UPLOAD_PHOTO_ACTION: "Upload Photo",
-  SELECT_SHIPPING_ACTION: "Select Shipping",
+  SELECT_SHIPPING_ACTION: "Product shipping",
   SELECT_SHIPPING_YES_ACTION: "Yes",
   SELECT_SHIPPING_NO_ACTION: "No",
   DELETE_PRODUCT_CONFIRM:
     "Delete Product? Enter any key to confirm. This action is irreversible.",
 
-  PRODUCT_NAME_PLACEHOLDER: "write a name",
-  PRODUCT_DESCRIPTION_PLACEHOLDER: "write a description",
-  PRODUCT_PRICE_PLACEHOLDER: "write a Price",
-  PRODUCT_QUANTITY_PLACEHOLDER: "write a quantity",
+  PRODUCT_NAME_PLACEHOLDER: "Product name",
+  PRODUCT_DESCRIPTION_PLACEHOLDER: "Product description",
+  PRODUCT_PRICE_PLACEHOLDER: "Product price",
+  PRODUCT_QUANTITY_PLACEHOLDER: "Product quantity",
+  PHOTO_PLACEHODER: "Product photo",
 
   FETCH_PRODUCT_ERROR: "Something went wrong in getting product",
   UPDATE_PRODUCT_ERROR: "Something went wrong in updating product",
@@ -67,7 +68,6 @@ const UpdateProduct = () => {
         setName(data.product.name);
         setId(data.product._id);
         setDescription(data.product.description);
-        setPrice(data.product.price);
         setPrice(data.product.price);
         setQuantity(data.product.quantity);
         setShipping(data.product.shipping);
@@ -146,6 +146,7 @@ const UpdateProduct = () => {
               <Select
                 variant="borderless"
                 placeholder={UPDATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION}
+                aria-label={UPDATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION}
                 size="large"
                 showSearch
                 className="form-select mb-3"
@@ -153,7 +154,6 @@ const UpdateProduct = () => {
                   setCategory(value);
                 }}
                 value={category}
-                data-testid="admin-update-product-category-select"
               >
                 {categories?.map((c) => (
                   <Option key={c._id} value={c._id}>
@@ -172,7 +172,7 @@ const UpdateProduct = () => {
                   name="photo"
                   accept="image/*"
                   onChange={(e) => setPhoto(e.target.files[0])}
-                  data-testid="admin-update-product-photo-input"
+                  aria-label={UPDATE_PRODUCT_STRINGS.UPLOAD_PHOTO_ACTION}
                   hidden
                 />
               </div>
@@ -181,7 +181,7 @@ const UpdateProduct = () => {
                   <div className="text-center">
                     <img
                       src={URL.createObjectURL(photo)}
-                      alt="product_photo"
+                      alt={UPDATE_PRODUCT_STRINGS.PHOTO_PLACEHODER}
                       height={"200px"}
                       className="img img-responsive"
                     />
@@ -190,7 +190,7 @@ const UpdateProduct = () => {
                   <div className="text-center">
                     <img
                       src={`${API_URLS.GET_PRODUCT_PHOTO}/${id}`}
-                      alt="product_photo"
+                      alt={UPDATE_PRODUCT_STRINGS.PHOTO_PLACEHODER}
                       height={"200px"}
                       className="img img-responsive"
                     />
@@ -201,22 +201,24 @@ const UpdateProduct = () => {
                 <input
                   type="text"
                   value={name}
+                  aria-label={UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER}
                   placeholder={UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER}
                   className="form-control"
                   onChange={(e) => setName(e.target.value)}
-                  data-testid="admin-update-product-name-input"
                 />
               </div>
               <div className="mb-3">
                 <textarea
                   type="text"
                   value={description}
+                  aria-label={
+                    UPDATE_PRODUCT_STRINGS.PRODUCT_DESCRIPTION_PLACEHOLDER
+                  }
                   placeholder={
                     UPDATE_PRODUCT_STRINGS.PRODUCT_DESCRIPTION_PLACEHOLDER
                   }
                   className="form-control"
                   onChange={(e) => setDescription(e.target.value)}
-                  data-testid="admin-update-product-description-input"
                 />
               </div>
 
@@ -224,27 +226,30 @@ const UpdateProduct = () => {
                 <input
                   type="number"
                   value={price}
+                  aria-label={UPDATE_PRODUCT_STRINGS.PRODUCT_PRICE_PLACEHOLDER}
                   placeholder={UPDATE_PRODUCT_STRINGS.PRODUCT_PRICE_PLACEHOLDER}
                   className="form-control"
                   onChange={(e) => setPrice(e.target.value)}
-                  data-testid="admin-update-product-price-input"
                 />
               </div>
               <div className="mb-3">
                 <input
                   type="number"
                   value={quantity}
+                  aria-label={
+                    UPDATE_PRODUCT_STRINGS.PRODUCT_QUANTITY_PLACEHOLDER
+                  }
                   placeholder={
                     UPDATE_PRODUCT_STRINGS.PRODUCT_QUANTITY_PLACEHOLDER
                   }
                   className="form-control"
                   onChange={(e) => setQuantity(e.target.value)}
-                  data-testid="admin-update-product-quantity-input"
                 />
               </div>
               <div className="mb-3">
                 <Select
                   variant="borderless"
+                  aria-label={UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_ACTION}
                   placeholder={UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_ACTION}
                   size="large"
                   showSearch
@@ -252,17 +257,12 @@ const UpdateProduct = () => {
                   onChange={(value) => {
                     setShipping(value === "true");
                   }}
-                  value={
-                    shipping
-                      ? UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_YES_ACTION
-                      : UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_NO_ACTION
-                  }
-                  data-testid="admin-update-product-shipping-select"
+                  value={shipping ? "true" : "false"}
                 >
-                  <Option value="false">
+                  <Option value="true">
                     {UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_NO_ACTION}
                   </Option>
-                  <Option value="true">
+                  <Option value="false">
                     {UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_YES_ACTION}
                   </Option>
                 </Select>
@@ -271,7 +271,7 @@ const UpdateProduct = () => {
                 <button
                   className="btn btn-primary"
                   onClick={handleUpdate}
-                  data-testid="admin-update-product-button"
+                  aria-label={UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ACTION}
                 >
                   {UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ACTION}
                 </button>
@@ -280,7 +280,7 @@ const UpdateProduct = () => {
                 <button
                   className="btn btn-danger"
                   onClick={handleDelete}
-                  data-testid="admin-delete-product-button"
+                  aria-label={UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ACTION}
                 >
                   {UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ACTION}
                 </button>

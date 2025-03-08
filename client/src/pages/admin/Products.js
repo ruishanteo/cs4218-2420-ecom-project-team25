@@ -44,18 +44,14 @@ const Products = () => {
         </div>
         <div className="col-md-9 ">
           <h1 className="text-center">All Products List</h1>
-          <div className="d-flex" data-testid="admin-products-list">
+          <div className="d-flex">
             {products?.map((p, index) => (
               <Link
                 key={p._id}
                 to={`/dashboard/admin/product/${p.slug}`}
                 className="product-link"
               >
-                <div
-                  className="card m-2"
-                  style={{ width: "18rem" }}
-                  data-testid={`admin-product-${index}`}
-                >
+                <div className="card m-2" style={{ width: "18rem" }}>
                   <img
                     src={`${API_URLS.GET_PHOTO}/${p._id}`}
                     className="card-img-top"

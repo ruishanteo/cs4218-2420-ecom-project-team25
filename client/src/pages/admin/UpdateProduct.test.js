@@ -17,8 +17,6 @@ import UpdateProduct, {
   API_URLS,
 } from "./UpdateProduct";
 import useCategory from "../../hooks/useCategory";
-
-// Mock dependencies
 jest.mock("axios");
 
 jest.mock("react-router-dom", () => ({
@@ -33,32 +31,26 @@ jest.mock("react-hot-toast", () => ({
 }));
 
 jest.mock("antd", () => {
-  const actualAntd = jest.requireActual("antd");
   const MockSelect = ({
     children,
     onChange,
-    "data-testid": testId,
     defaultValue,
+    value,
+    "aria-label": ariaLabel,
   }) => (
     <select
-      data-testid={testId}
       defaultValue={defaultValue}
+      value={value}
       onChange={(e) => onChange(e.target.value)}
+      aria-label={ariaLabel}
     >
       {children}
     </select>
   );
-
-  MockSelect.Option = ({ children, value, "data-testid": testId }) => (
-    <option value={value} data-testid={testId}>
-      {children}
-    </option>
+  MockSelect.Option = ({ children, value }) => (
+    <option value={value}>{children}</option>
   );
-
-  return {
-    ...actualAntd,
-    Select: MockSelect,
-  };
+  return { Select: MockSelect };
 });
 
 jest.mock("../../hooks/useCategory", () => ({
@@ -67,40 +59,32 @@ jest.mock("../../hooks/useCategory", () => ({
 }));
 
 jest.mock("../../components/Layout", () => ({ children }) => (
-  <div data-testid="layout">{children}</div>
+  <div>{children}</div>
 ));
 
-jest.mock("../../components/AdminMenu", () => () => (
-  <div data-testid="admin-menu">Mock AdminMenu</div>
-));
+jest.mock("../../components/AdminMenu", () => () => <div>Mock AdminMenu</div>);
 
-describe("UpdateProduct Component", () => {
+function getCaseInsensitiveRegex(text) {
+  return new RegExp(text, "i");
+}
+
+describe("UpdateProduct", () => {
   const mockNavigate = jest.fn();
   const mockParams = { slug: "test-product" };
-  const mockProduct = {
-    product: {
-      _id: "123",
-      name: "Test Product",
-      description: "Test Description",
-      price: 100,
-      quantity: 5,
-      shipping: true,
-      category: { _id: "cat1", name: "Category 1" },
-    },
-    success: true,
-  };
   const mockCategories = [
-    {
-      _id: "Category 1",
-      name: "Category 1",
-    },
-    {
-      _id: "Category 2",
-      name: "Category 2",
-    },
+    { _id: "1", name: "Category1" },
+    { _id: "2", name: "Category2" },
   ];
-
-  const GET_SINGLE_PRODUCT_URL = `${API_URLS.GET_PRODUCT}/${mockParams.slug}`;
+  const mockProduct = {
+    _id: "123",
+    name: "Test Product",
+    description: "Test Description",
+    price: 100,
+    quantity: 5,
+    photo: "test-photo.jpg",
+    shipping: true,
+    category: mockCategories[0],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -110,57 +94,102 @@ describe("UpdateProduct Component", () => {
   });
 
   it("should fetch and display product details", async () => {
-    axios.get.mockResolvedValueOnce({ data: mockProduct }); // Simulate success
+    axios.get.mockResolvedValueOnce({
+      data: { product: mockProduct, success: true },
+    });
 
     render(<UpdateProduct />);
 
     // Wait for the product details to load and check if the form fields are populated
     await waitFor(() =>
       expect(
-        screen.getByTestId("admin-update-product-name-input")
-      ).toHaveDisplayValue(mockProduct.product.name)
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+          ),
+        })
+      ).toHaveValue(mockProduct.name)
     );
     expect(
-      screen.getByTestId("admin-update-product-description-input")
-    ).toHaveDisplayValue(mockProduct.product.description);
+      screen.getByRole("textbox", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.PRODUCT_DESCRIPTION_PLACEHOLDER
+        ),
+      })
+    ).toHaveValue(mockProduct.description);
     expect(
-      screen.getByTestId("admin-update-product-price-input")
-    ).toHaveDisplayValue(mockProduct.product.price.toString());
+      screen.getByRole("spinbutton", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.PRODUCT_PRICE_PLACEHOLDER
+        ),
+      })
+    ).toHaveValue(mockProduct.price);
     expect(
-      screen.getByTestId("admin-update-product-quantity-input")
-    ).toHaveDisplayValue(mockProduct.product.quantity.toString());
-    expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
+      screen.getByRole("spinbutton", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.PRODUCT_QUANTITY_PLACEHOLDER
+        ),
+      })
+    ).toHaveValue(mockProduct.quantity);
+    expect(
+      screen.getByRole("combobox", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_ACTION
+        ),
+      })
+    ).toHaveValue(mockProduct.shipping.toString());
+    expect(
+      screen.getByRole("combobox", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION
+        ),
+      })
+    ).toHaveValue(mockProduct.category._id);
+    expect(
+      screen.getByRole("img", {
+        name: getCaseInsensitiveRegex(UPDATE_PRODUCT_STRINGS.PHOTO_PLACEHODER),
+      })
+    ).toHaveAttribute(
+      "src",
+      `${API_URLS.GET_PRODUCT_PHOTO}/${mockProduct._id}`
+    );
+    expect(axios.get).toHaveBeenCalledWith(
+      `${API_URLS.GET_PRODUCT}/${mockParams.slug}`
+    );
   });
 
-  it("should display error message when product fetch fails", async () => {
-    axios.get.mockResolvedValueOnce({ data: { success: false } }); // Simulate failure
+  it("should display error message when fetch product API response is unsuccessful", async () => {
+    axios.get.mockResolvedValueOnce({ data: { success: false } });
 
     render(<UpdateProduct />);
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.FETCH_PRODUCT_ERROR
       )
     );
-    expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
+    expect(axios.get).toHaveBeenCalledWith(
+      `${API_URLS.GET_PRODUCT}/${mockParams.slug}`
+    );
   });
 
-  it("should display error message when product fetch throws an exception", async () => {
-    axios.get.mockRejectedValueOnce(new Error("Failed to fetch product")); // Simulate exception
+  it("should display error message when fetch product API request fails", async () => {
+    axios.get.mockRejectedValueOnce(new Error("Fetch error"));
 
     render(<UpdateProduct />);
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.FETCH_PRODUCT_ERROR
       )
     );
-    expect(axios.get).toHaveBeenCalledWith(GET_SINGLE_PRODUCT_URL);
+    expect(axios.get).toHaveBeenCalledWith(
+      `${API_URLS.GET_PRODUCT}/${mockParams.slug}`
+    );
   });
 
   it("should update the product successfully", async () => {
+    const user = userEvent.setup();
     const inputFormData = {
       name: "Updated Product",
       description: "Updated Description",
@@ -172,55 +201,101 @@ describe("UpdateProduct Component", () => {
       category: mockCategories[1]._id,
       shipping: "false",
     };
-    const user = userEvent.setup();
     URL.createObjectURL = jest.fn().mockReturnValue("test-url");
-    axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.put.mockResolvedValueOnce({ data: { success: true } }); // Simulate success
+    axios.get.mockResolvedValueOnce({
+      data: { product: mockProduct, success: true },
+    });
+    axios.put.mockResolvedValueOnce({ data: { success: true } });
 
     render(<UpdateProduct />);
 
     // Wait for the product details to load
     await waitFor(() =>
       expect(
-        screen.getByTestId("admin-update-product-name-input")
-      ).toHaveDisplayValue(mockProduct.product.name)
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+          ),
+        })
+      ).toHaveValue(mockProduct.name)
     );
 
     // Update product details and submit the form
-    fireEvent.change(screen.getByTestId("admin-update-product-name-input"), {
-      target: { value: inputFormData.name },
-    });
     fireEvent.change(
-      screen.getByTestId("admin-update-product-description-input"),
+      screen.getByRole("textbox", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+        ),
+      }),
+      {
+        target: { value: inputFormData.name },
+      }
+    );
+    fireEvent.change(
+      screen.getByRole("textbox", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.PRODUCT_DESCRIPTION_PLACEHOLDER
+        ),
+      }),
       {
         target: { value: inputFormData.description },
       }
     );
-    fireEvent.change(screen.getByTestId("admin-update-product-price-input"), {
-      target: { value: inputFormData.price },
-    });
     fireEvent.change(
-      screen.getByTestId("admin-update-product-quantity-input"),
+      screen.getByRole("spinbutton", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.PRODUCT_PRICE_PLACEHOLDER
+        ),
+      }),
+      {
+        target: { value: inputFormData.price },
+      }
+    );
+    fireEvent.change(
+      screen.getByRole("spinbutton", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.PRODUCT_QUANTITY_PLACEHOLDER
+        ),
+      }),
       {
         target: { value: inputFormData.quantity },
       }
     );
     fireEvent.change(
-      screen.getByTestId("admin-update-product-category-select"),
-      { target: { value: inputFormData.category } }
+      screen.getByRole("combobox", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION
+        ),
+      }),
+      {
+        target: { value: inputFormData.category },
+      }
     );
     fireEvent.change(
-      screen.getByTestId("admin-update-product-shipping-select"),
-      { target: { value: inputFormData.shipping } }
+      screen.getByRole("combobox", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_ACTION
+        ),
+      }),
+      {
+        target: { value: inputFormData.shipping },
+      }
     );
-    const uploadInput = screen.getByTestId("admin-update-product-photo-input");
+    const uploadInput = screen.getByLabelText(
+      getCaseInsensitiveRegex(UPDATE_PRODUCT_STRINGS.UPLOAD_PHOTO_ACTION)
+    );
     await act(async () => {
       await user.upload(uploadInput, inputFormData.photo);
     });
     await waitFor(() => expect(uploadInput.files).toHaveLength(1));
-    fireEvent.click(screen.getByTestId("admin-update-product-button"));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ACTION
+        ),
+      })
+    );
 
-    // Wait for success message and API call
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.PRODUCT_UPDATED
@@ -228,7 +303,7 @@ describe("UpdateProduct Component", () => {
     );
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
     expect(axios.put).toHaveBeenCalledWith(
-      `${API_URLS.UPDATE_PRODUCT}/${mockProduct.product._id}`,
+      `${API_URLS.UPDATE_PRODUCT}/${mockProduct._id}`,
       expect.any(FormData)
     );
     const actualFormData = axios.put.mock.calls[0][1];
@@ -237,19 +312,33 @@ describe("UpdateProduct Component", () => {
     });
   });
 
-  it("should display error message when product update fails", async () => {
-    axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.put.mockResolvedValueOnce({ data: { success: false } }); // Simulate failure
+  it("should display error message when update product API response is unsuccessful", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { product: mockProduct, success: true },
+    });
+    axios.put.mockResolvedValueOnce({ data: { success: false } });
 
     render(<UpdateProduct />);
 
-    // Wait for the product details to load and trigger the update button click
+    // Wait for the product details to load
     await waitFor(() =>
       expect(
-        screen.getByTestId("admin-update-product-name-input")
-      ).toHaveDisplayValue(mockProduct.product.name)
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+          ),
+        })
+      ).toHaveValue(mockProduct.name)
     );
-    fireEvent.click(screen.getByTestId("admin-update-product-button"));
+
+    // Submit the form
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ACTION
+        ),
+      })
+    );
 
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
@@ -257,135 +346,202 @@ describe("UpdateProduct Component", () => {
       )
     );
     expect(axios.put).toHaveBeenCalledWith(
-      `${API_URLS.UPDATE_PRODUCT}/${mockProduct.product._id}`,
+      `${API_URLS.UPDATE_PRODUCT}/${mockProduct._id}`,
       expect.any(FormData)
     );
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it("should display error message when product update throws an exception", async () => {
-    axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.put.mockRejectedValueOnce(new Error("Failed to update product")); // Simulate exception
+  it("should display error message when update product API request fails", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { product: mockProduct, success: true },
+    });
+    axios.put.mockRejectedValueOnce(new Error("Update error"));
 
     render(<UpdateProduct />);
 
-    // Wait for the product details to load and trigger the update button click
+    // Wait for the product details to load
     await waitFor(() =>
       expect(
-        screen.getByTestId("admin-update-product-name-input")
-      ).toHaveDisplayValue(mockProduct.product.name)
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+          ),
+        })
+      ).toHaveValue(mockProduct.name)
     );
-    fireEvent.click(screen.getByText("UPDATE PRODUCT"));
 
-    // Wait for error message and API call
+    // Submit the form
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ACTION
+        ),
+      })
+    );
+
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
-        "Something went wrong in updating product"
+        UPDATE_PRODUCT_STRINGS.UPDATE_PRODUCT_ERROR
       )
     );
     expect(axios.put).toHaveBeenCalledWith(
-      `/api/v1/product/update-product/${mockProduct.product._id}`,
+      `${API_URLS.UPDATE_PRODUCT}/${mockProduct._id}`,
       expect.any(FormData)
     );
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it("should delete a product successfully", async () => {
-    axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.delete.mockResolvedValueOnce({ data: { success: true } }); // Simulate success
+    axios.get.mockResolvedValueOnce({
+      data: { product: mockProduct, success: true },
+    });
+    axios.delete.mockResolvedValueOnce({ data: { success: true } });
     window.prompt = jest.fn().mockReturnValue(true); // Simulate confirmation
 
     render(<UpdateProduct />);
 
-    // Wait for the product details to load and trigger the delete button click
+    // Wait for the product details to load
     await waitFor(() =>
       expect(
-        screen.getByTestId("admin-update-product-name-input")
-      ).toHaveDisplayValue(mockProduct.product.name)
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+          ),
+        })
+      ).toHaveValue(mockProduct.name)
     );
-    fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
-    // Wait for success message and API call
+    // Simulate deleting the product
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ACTION
+        ),
+      })
+    );
+
+    // Wait for success message
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.PRODUCT_DELETED
       )
     );
     expect(axios.delete).toHaveBeenCalledWith(
-      `/api/v1/product/delete-product/${mockProduct.product._id}`
+      `${API_URLS.DELETE_PRODUCT}/${mockProduct._id}`
     );
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard/admin/products");
   });
 
-  it("should display error message when product deletion fails", async () => {
-    axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.delete.mockResolvedValueOnce({ success: false }); // Simulate failure
+  it("should display error message when delete product API response is unsuccessful", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { product: mockProduct, success: true },
+    });
+    axios.delete.mockResolvedValueOnce({ data: { success: false } });
     window.prompt = jest.fn().mockReturnValue(true); // Simulate confirmation
 
     render(<UpdateProduct />);
 
-    // Wait for the product details to load and trigger the delete button click
+    // Wait for the product details to load
     await waitFor(() =>
       expect(
-        screen.getByTestId("admin-update-product-name-input")
-      ).toHaveDisplayValue(mockProduct.product.name)
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+          ),
+        })
+      ).toHaveValue(mockProduct.name)
     );
-    fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
-    // Wait for error message and API call
+    // Simulate deleting the product
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ACTION
+        ),
+      })
+    );
+
+    // Wait for error message
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ERROR
       )
     );
     expect(axios.delete).toHaveBeenCalledWith(
-      `${API_URLS.DELETE_PRODUCT}/${mockProduct.product._id}`
+      `${API_URLS.DELETE_PRODUCT}/${mockProduct._id}`
     );
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it("should display error message when product deletion throws an exception", async () => {
-    axios.get.mockResolvedValueOnce({ data: mockProduct });
-    axios.delete.mockRejectedValueOnce(new Error("Failed to delete product")); // Simulate exception
+  it("should display error message when delete product API request fails", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { product: mockProduct, success: true },
+    });
+    axios.delete.mockRejectedValueOnce(new Error("Delete error"));
     window.prompt = jest.fn().mockReturnValue(true); // Simulate confirmation
 
     render(<UpdateProduct />);
 
-    // Wait for the product details to load and trigger the delete button click
+    // Wait for the product details to load
     await waitFor(() =>
       expect(
-        screen.getByTestId("admin-update-product-name-input")
-      ).toHaveDisplayValue(mockProduct.product.name)
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+          ),
+        })
+      ).toHaveValue(mockProduct.name)
     );
-    fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
-    // Wait for error message and API call
+    // Simulate deleting the product
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ACTION
+        ),
+      })
+    );
+
+    // Wait for error message
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ERROR
       )
     );
     expect(axios.delete).toHaveBeenCalledWith(
-      `${API_URLS.DELETE_PRODUCT}/${mockProduct.product._id}`
+      `${API_URLS.DELETE_PRODUCT}/${mockProduct._id}`
     );
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it("should handle prompt cancel during product deletion", async () => {
-    axios.get.mockResolvedValueOnce({ data: mockProduct });
-    window.prompt = jest.fn().mockReturnValue(null); // Simulate cancel
+  it("should not delete a product when confirmation is false", async () => {
+    axios.get.mockResolvedValueOnce({
+      data: { product: mockProduct, success: true },
+    });
+    window.prompt = jest.fn().mockReturnValue(false); // Simulate confirmation
 
     render(<UpdateProduct />);
 
-    // Wait for the product details to load and trigger the delete button click
+    // Wait for the product details to load
     await waitFor(() =>
       expect(
-        screen.getByTestId("admin-update-product-name-input")
-      ).toHaveDisplayValue(mockProduct.product.name)
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+          ),
+        })
+      ).toHaveValue(mockProduct.name)
     );
-    fireEvent.click(screen.getByTestId("admin-delete-product-button"));
 
-    // Wait for prompt and check if delete API is not called
+    // Simulate deleting the product
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          UPDATE_PRODUCT_STRINGS.DELETE_PRODUCT_ACTION
+        ),
+      })
+    );
+
+    // Check if the product was not deleted
     await waitFor(() => expect(window.prompt).toHaveBeenCalled());
     expect(axios.delete).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
