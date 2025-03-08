@@ -79,6 +79,7 @@ const CreateProduct = () => {
             <div className="m-1 w-75">
               <Select
                 variant="borderless"
+                aria-label={CREATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION}
                 placeholder={CREATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION}
                 size="large"
                 showSearch
@@ -86,14 +87,9 @@ const CreateProduct = () => {
                 onChange={(value) => {
                   setCategory(value);
                 }}
-                data-testid="create-product-category-select"
               >
                 {categories?.map((c) => (
-                  <Option
-                    key={c._id}
-                    value={c._id}
-                    data-testid={`create-product-option-${c._id}`}
-                  >
+                  <Option key={c._id} value={c._id}>
                     {c.name}
                   </Option>
                 ))}
@@ -105,11 +101,10 @@ const CreateProduct = () => {
                     : CREATE_PRODUCT_STRINGS.UPLOAD_PHOTO_ACTION}
                   <input
                     type="file"
-                    name="photo"
+                    aria-label="photo"
                     accept="image/*"
                     onChange={(e) => setPhoto(e.target.files[0])}
                     hidden
-                    data-testid="create-product-photo-input"
                   />
                 </label>
               </div>
@@ -129,22 +124,24 @@ const CreateProduct = () => {
                 <input
                   type="text"
                   value={name}
+                  aria-label={CREATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER}
                   placeholder={CREATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER}
                   className="form-control"
                   onChange={(e) => setName(e.target.value)}
-                  data-testid="create-product-name-input"
                 />
               </div>
               <div className="mb-3">
                 <textarea
                   type="text"
                   value={description}
+                  aria-label={
+                    CREATE_PRODUCT_STRINGS.PRODUCT_DESCRIPTION_PLACEHOLDER
+                  }
                   placeholder={
                     CREATE_PRODUCT_STRINGS.PRODUCT_DESCRIPTION_PLACEHOLDER
                   }
                   className="form-control"
                   onChange={(e) => setDescription(e.target.value)}
-                  data-testid="create-product-description-input"
                 />
               </div>
 
@@ -152,27 +149,30 @@ const CreateProduct = () => {
                 <input
                   type="number"
                   value={price}
+                  aria-label={CREATE_PRODUCT_STRINGS.PRODUCT_PRICE_PLACEHOLDER}
                   placeholder={CREATE_PRODUCT_STRINGS.PRODUCT_PRICE_PLACEHOLDER}
                   className="form-control"
                   onChange={(e) => setPrice(e.target.value)}
-                  data-testid="create-product-price-input"
                 />
               </div>
               <div className="mb-3">
                 <input
                   type="number"
                   value={quantity}
+                  aria-label={
+                    CREATE_PRODUCT_STRINGS.PRODUCT_QUANTITY_PLACEHOLDER
+                  }
                   placeholder={
                     CREATE_PRODUCT_STRINGS.PRODUCT_QUANTITY_PLACEHOLDER
                   }
                   className="form-control"
                   onChange={(e) => setQuantity(e.target.value)}
-                  data-testid="create-product-quantity-input"
                 />
               </div>
               <div className="mb-3">
                 <Select
                   variant="borderless"
+                  aria-label={CREATE_PRODUCT_STRINGS.SELECT_SHIPPING_ACTION}
                   placeholder={CREATE_PRODUCT_STRINGS.SELECT_SHIPPING_ACTION}
                   size="large"
                   showSearch
@@ -180,7 +180,6 @@ const CreateProduct = () => {
                   onChange={(value) => {
                     setShipping(value === "true");
                   }}
-                  data-testid="create-product-shipping-select"
                 >
                   <Option value="false">
                     {CREATE_PRODUCT_STRINGS.SELECT_SHIPPING_NO_ACTION}
@@ -191,11 +190,7 @@ const CreateProduct = () => {
                 </Select>
               </div>
               <div className="mb-3">
-                <button
-                  className="btn btn-primary"
-                  onClick={handleCreate}
-                  data-testid="create-product-button"
-                >
+                <button className="btn btn-primary" onClick={handleCreate}>
                   {CREATE_PRODUCT_STRINGS.CREATE_PRODUCT_ACTION}
                 </button>
               </div>

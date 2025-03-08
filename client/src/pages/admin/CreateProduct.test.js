@@ -19,7 +19,6 @@ import CreateProduct, {
 } from "./CreateProduct";
 import useCategory from "../../hooks/useCategory";
 
-// Mock dependencies
 jest.mock("axios");
 
 jest.mock("react-router-dom", () => ({
@@ -33,20 +32,26 @@ jest.mock("react-hot-toast", () => ({
 }));
 
 jest.mock("antd", () => {
-  const actualAntd = jest.requireActual("antd");
-  const MockSelect = ({ children, onChange, "data-testid": testId }) => (
-    <select data-testid={testId} onChange={(e) => onChange(e.target.value)}>
+  const MockSelect = ({
+    children,
+    onChange,
+    defaultValue,
+    value,
+    "aria-label": ariaLabel,
+  }) => (
+    <select
+      defaultValue={defaultValue}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      aria-label={ariaLabel}
+    >
       {children}
     </select>
   );
-
-  MockSelect.Option = ({ children, value, "data-testid": testId }) => (
-    <option value={value} data-testid={testId}>
-      {children}
-    </option>
+  MockSelect.Option = ({ children, value }) => (
+    <option value={value}>{children}</option>
   );
-
-  return { ...actualAntd, Select: MockSelect };
+  return { Select: MockSelect };
 });
 
 jest.mock("../../hooks/useCategory", () => ({
@@ -55,12 +60,14 @@ jest.mock("../../hooks/useCategory", () => ({
 }));
 
 jest.mock("../../components/Layout", () => ({ children }) => (
-  <div data-testid="layout">{children}</div>
+  <div>{children}</div>
 ));
 
-jest.mock("../../components/AdminMenu", () => () => (
-  <div data-testid="admin-menu">Mock AdminMenu</div>
-));
+jest.mock("../../components/AdminMenu", () => () => <div>Mock AdminMenu</div>);
+
+function getCaseInsensitiveRegex(text) {
+  return new RegExp(text, "i");
+}
 
 describe("CreateProduct Component", () => {
   const mockCategories = [{ _id: "1", name: "Electronics" }];
@@ -75,14 +82,15 @@ describe("CreateProduct Component", () => {
   it("should display categories", async () => {
     render(<CreateProduct />);
 
-    // Wait for categories to load
-    await waitFor(() =>
-      expect(
-        within(
-          screen.getByTestId("create-product-category-select")
-        ).queryAllByTestId(/create-product-option/)
-      ).toHaveLength(mockCategories.length)
-    );
+    const categorySelect = await screen.findByRole("combobox", {
+      name: getCaseInsensitiveRegex(
+        CREATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION
+      ),
+    });
+
+    expect(categorySelect).toBeInTheDocument();
+    const options = within(categorySelect).getAllByRole("option");
+    expect(options).toHaveLength(mockCategories.length);
   });
 
   it("should update input fields and create a product successfully", async () => {
@@ -104,32 +112,71 @@ describe("CreateProduct Component", () => {
     render(<CreateProduct />);
 
     // Fill form and submit
-    fireEvent.change(screen.getByTestId("create-product-name-input"), {
-      target: { value: inputFormData.name },
-    });
-    fireEvent.change(screen.getByTestId("create-product-description-input"), {
-      target: { value: inputFormData.description },
-    });
-    fireEvent.change(screen.getByTestId("create-product-price-input"), {
-      target: { value: inputFormData.price },
-    });
-    fireEvent.change(screen.getByTestId("create-product-quantity-input"), {
-      target: { value: inputFormData.quantity },
-    });
-    fireEvent.change(screen.getByTestId("create-product-category-select"), {
-      target: { value: inputFormData.category },
-    });
-    fireEvent.change(screen.getByTestId("create-product-shipping-select"), {
-      target: { value: inputFormData.shipping },
-    });
-    const uploadInput = screen.getByTestId("create-product-photo-input");
     await act(async () => {
-      await user.upload(uploadInput, inputFormData.photo);
+      await user.type(
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            CREATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+          ),
+        }),
+        inputFormData.name
+      );
+      await user.type(
+        screen.getByRole("textbox", {
+          name: getCaseInsensitiveRegex(
+            CREATE_PRODUCT_STRINGS.PRODUCT_DESCRIPTION_PLACEHOLDER
+          ),
+        }),
+        inputFormData.description
+      );
+      await user.type(
+        screen.getByRole("spinbutton", {
+          name: getCaseInsensitiveRegex(
+            CREATE_PRODUCT_STRINGS.PRODUCT_PRICE_PLACEHOLDER
+          ),
+        }),
+        inputFormData.price
+      );
+      await user.type(
+        screen.getByRole("spinbutton", {
+          name: getCaseInsensitiveRegex(
+            CREATE_PRODUCT_STRINGS.PRODUCT_QUANTITY_PLACEHOLDER
+          ),
+        }),
+        inputFormData.quantity
+      );
+      await user.selectOptions(
+        screen.getByRole("combobox", {
+          name: getCaseInsensitiveRegex(
+            CREATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION
+          ),
+        }),
+        inputFormData.category
+      );
+      await user.selectOptions(
+        screen.getByRole("combobox", {
+          name: getCaseInsensitiveRegex(
+            CREATE_PRODUCT_STRINGS.SELECT_SHIPPING_ACTION
+          ),
+        }),
+        inputFormData.shipping
+      );
+      await user.upload(
+        screen.getByLabelText(
+          getCaseInsensitiveRegex(CREATE_PRODUCT_STRINGS.UPLOAD_PHOTO_ACTION)
+        ),
+        inputFormData.photo
+      );
     });
-    await waitFor(() => expect(uploadInput.files).toHaveLength(1));
-    fireEvent.click(screen.getByTestId("create-product-button"));
 
-    // Wait for success message and API call
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          CREATE_PRODUCT_STRINGS.CREATE_PRODUCT_ACTION
+        ),
+      })
+    );
+
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         CREATE_PRODUCT_STRINGS.PRODUCT_CREATED
@@ -146,15 +193,19 @@ describe("CreateProduct Component", () => {
     });
   });
 
-  it("should display error message when product creation fails", async () => {
+  it("should display error message when product creation API response is unsuccessful", async () => {
     axios.post.mockResolvedValue({ data: { success: false } });
 
     render(<CreateProduct />);
 
-    // Fill form and submit
-    fireEvent.click(screen.getByTestId("create-product-button"));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          CREATE_PRODUCT_STRINGS.CREATE_PRODUCT_ACTION
+        ),
+      })
+    );
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_PRODUCT_STRINGS.CREATE_PRODUCT_ERROR
@@ -167,15 +218,19 @@ describe("CreateProduct Component", () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it("should display error message when product creation throws an exception", async () => {
+  it("should display error message when product creation API request fails", async () => {
     axios.post.mockRejectedValue(new Error("Create error"));
 
     render(<CreateProduct />);
 
-    // Fill form and submit
-    fireEvent.click(screen.getByTestId("create-product-button"));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: getCaseInsensitiveRegex(
+          CREATE_PRODUCT_STRINGS.CREATE_PRODUCT_ACTION
+        ),
+      })
+    );
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_PRODUCT_STRINGS.CREATE_PRODUCT_ERROR

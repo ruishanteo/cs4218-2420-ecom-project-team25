@@ -78,15 +78,11 @@ const AdminOrders = () => {
         <div className="col-md-3">
           <AdminMenu />
         </div>
-        <div className="col-md-9" data-testid="admin-orders-list">
+        <div className="col-md-9">
           <h1 className="text-center">All Orders</h1>
           {orders?.map((o, i) => {
             return (
-              <div
-                className="border shadow"
-                key={o._id}
-                data-testid={`admin-order-item-${i}`}
-              >
+              <div className="border shadow" key={o._id}>
                 <table className="table">
                   <thead>
                     <tr>
@@ -103,7 +99,6 @@ const AdminOrders = () => {
                       <td>{i + 1}</td>
                       <td>
                         <Select
-                          data-testid={`status-${o._id}`}
                           variant="borderless"
                           onChange={(value) => handleChange(o._id, value)}
                           defaultValue={o?.status}

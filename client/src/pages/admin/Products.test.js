@@ -1,12 +1,11 @@
 import React from "react";
 import toast from "react-hot-toast";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
 import axios from "axios";
 
 import Products, { API_URLS, PRODUCTS_STRINGS } from "./Products";
 
-// Mock dependencies
 jest.mock("axios");
 
 jest.mock("react-router-dom", () => ({
@@ -19,12 +18,10 @@ jest.mock("react-hot-toast", () => ({
 }));
 
 jest.mock("../../components/Layout", () => ({ children }) => (
-  <div data-testid="layout">{children}</div>
+  <div>{children}</div>
 ));
 
-jest.mock("../../components/AdminMenu", () => () => (
-  <div data-testid="admin-menu">Mock AdminMenu</div>
-));
+jest.mock("../../components/AdminMenu", () => () => <nav>Mock AdminMenu</nav>);
 
 describe("Products Component", () => {
   const mockProducts = [
@@ -50,71 +47,52 @@ describe("Products Component", () => {
     axios.get.mockResolvedValueOnce({
       data: { products: mockProducts, success: true },
     });
-
     render(<Products />);
 
-    // Wait for the products to be displayed
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("admin-products-list")).queryAllByTestId(
-          /admin-product-/
-        )
-      ).toHaveLength(mockProducts.length)
-    );
+    await waitFor(() => {
+      mockProducts.forEach((product) => {
+        expect(
+          screen.getByRole("heading", { name: product.name })
+        ).toBeInTheDocument();
+        expect(screen.getByText(product.description)).toBeInTheDocument();
+      });
+    });
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
   });
 
-  it("should display no products when API returns an empty array", async () => {
+  it("should not display any products when API returns an empty array", async () => {
     axios.get.mockResolvedValueOnce({ data: { products: [], success: true } });
-
     render(<Products />);
 
-    // Wait for the products to be displayed (0 products)
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("admin-products-list")).queryAllByTestId(
-          /admin-product-/
-        )
-      ).toHaveLength(0)
-    );
+    await waitFor(() => {
+      expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    });
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
   });
 
-  it("should display error message when get products fails", async () => {
+  it("should display error message when API response is unsuccessful", async () => {
     axios.get.mockResolvedValueOnce({ data: { success: false } });
-
     render(<Products />);
 
-    // Wait for error message, API call and verify no products are displayed
-    await waitFor(() =>
+    await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
         PRODUCTS_STRINGS.FETCH_PRODUCTS_ERROR
-      )
-    );
+      );
+    });
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
-    expect(
-      within(screen.getByTestId("admin-products-list")).queryAllByTestId(
-        /admin-product-/
-      )
-    ).toHaveLength(0);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 
-  it("should display error message when get products throws an exception", async () => {
+  it("should display error message when API request fails", async () => {
     axios.get.mockRejectedValueOnce(new Error("Failed to fetch products"));
-
     render(<Products />);
 
-    // Wait for error message, API call and verify no products are displayed
-    await waitFor(() =>
+    await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
         PRODUCTS_STRINGS.FETCH_PRODUCTS_ERROR
-      )
-    );
+      );
+    });
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
-    expect(
-      within(screen.getByTestId("admin-products-list")).queryAllByTestId(
-        /admin-product-/
-      )
-    ).toHaveLength(0);
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 });

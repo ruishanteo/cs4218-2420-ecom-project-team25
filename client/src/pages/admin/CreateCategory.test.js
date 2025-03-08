@@ -16,7 +16,6 @@ import CreateCategory, {
 } from "./CreateCategory";
 import useCategory from "../../hooks/useCategory";
 
-// Mock dependencies
 jest.mock("axios");
 
 jest.mock("react-hot-toast", () => ({
@@ -30,28 +29,25 @@ jest.mock("../../hooks/useCategory", () => ({
 }));
 
 jest.mock("../../components/Layout", () => ({ children }) => (
-  <div data-testid="layout">{children}</div>
+  <div>{children}</div>
 ));
 
-jest.mock("../../components/AdminMenu", () => () => (
-  <div data-testid="admin-menu">Mock AdminMenu</div>
-));
+jest.mock("../../components/AdminMenu", () => () => <div>Mock AdminMenu</div>);
 
 jest.mock(
   "../../components/Form/CategoryForm",
   () =>
     ({ handleSubmit, value, setValue }) =>
       (
-        <div data-testid="category-form">
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="category-input">Category Name</label>
           <input
-            data-testid="category-input"
+            id="category-input"
             value={value}
             onChange={(e) => setValue(e.target.value)}
           />
-          <button data-testid="submit-button" onClick={handleSubmit}>
-            Submit
-          </button>
-        </div>
+          <button type="submit">Submit</button>
+        </form>
       )
 );
 
@@ -67,14 +63,9 @@ describe("CreateCategory Component", () => {
   it("should display categories", async () => {
     render(<CreateCategory />);
 
-    // Wait for categories to load
-    await waitFor(() =>
-      expect(
-        within(screen.getByTestId("create-category-list")).queryAllByTestId(
-          /create-category-/
-        )
-      ).toHaveLength(mockCategories.length)
-    );
+    expect(
+      screen.getAllByRole("button", { name: /update .* category/i })
+    ).toHaveLength(mockCategories.length);
   });
 
   it("should display success message when category is created successfully", async () => {
@@ -84,11 +75,11 @@ describe("CreateCategory Component", () => {
 
     // Create a new category
     const newCategory = "New Category";
-    const input = screen.getByTestId("category-input");
-    fireEvent.change(input, { target: { value: newCategory } });
-    fireEvent.click(screen.getByTestId("submit-button"));
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: newCategory },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /submit/i }));
 
-    // Wait for success message and API call
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.CATEGORY_CREATED
@@ -100,49 +91,41 @@ describe("CreateCategory Component", () => {
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
-  it("should display error message when category creation fails", async () => {
+  it("should display error message when category creation API response is unsuccessful", async () => {
     axios.post.mockResolvedValueOnce({ data: { success: false } });
 
     render(<CreateCategory />);
 
-    // Create a new category
-    const newCategory = "New Category";
-    const input = screen.getByTestId("category-input");
-    fireEvent.change(input, { target: { value: newCategory } });
-    fireEvent.click(screen.getByTestId("submit-button"));
+    fireEvent.click(screen.getByRole("button", { name: /submit/i }));
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR
       )
     );
-    expect(axios.post).toHaveBeenCalledWith(API_URLS.CREATE_CATEGORY, {
-      name: newCategory,
-    });
+    expect(axios.post).toHaveBeenCalledWith(
+      API_URLS.CREATE_CATEGORY,
+      expect.any(Object)
+    );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
-  it("should display error message when category creation throws an exception", async () => {
-    axios.post.mockRejectedValueOnce(new Error("Creation failed"));
+  it("should display error message when category creation API request fails", async () => {
+    axios.post.mockRejectedValueOnce(new Error("Failed to create category"));
 
     render(<CreateCategory />);
 
-    // Create a new category
-    const newCategory = "New Category";
-    const input = screen.getByTestId("category-input");
-    fireEvent.change(input, { target: { value: newCategory } });
-    fireEvent.click(screen.getByTestId("submit-button"));
+    fireEvent.click(screen.getByRole("button", { name: /submit/i }));
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR
       )
     );
-    expect(axios.post).toHaveBeenCalledWith(API_URLS.CREATE_CATEGORY, {
-      name: newCategory,
-    });
+    expect(axios.post).toHaveBeenCalledWith(
+      API_URLS.CREATE_CATEGORY,
+      expect.any(Object)
+    );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
@@ -151,60 +134,57 @@ describe("CreateCategory Component", () => {
 
     render(<CreateCategory />);
 
-    // Delete a category
-    const id = mockCategories[0]._id;
-    fireEvent.click(screen.getByTestId(`delete-category-${id}`));
+    fireEvent.click(
+      screen.getByRole("button", { name: /delete electronics category/i })
+    );
 
-    // Wait for success message and API call
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.CATEGORY_DELETED
       )
     );
     expect(axios.delete).toHaveBeenCalledWith(
-      `${API_URLS.DELETE_CATEGORY}/${id}`
+      `${API_URLS.DELETE_CATEGORY}/${mockCategories[0]._id}`
     );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
-  it("should display error message when category deletion fails", async () => {
+  it("should display error message when category deletion API response is unsuccessful", async () => {
     axios.delete.mockResolvedValueOnce({ data: { success: false } });
 
     render(<CreateCategory />);
 
-    // Delete a category
-    const id = mockCategories[0]._id;
-    fireEvent.click(screen.getByTestId(`delete-category-${id}`));
+    fireEvent.click(
+      screen.getByRole("button", { name: /delete electronics category/i })
+    );
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.DELETE_CATEGORY_ERROR
       )
     );
     expect(axios.delete).toHaveBeenCalledWith(
-      `${API_URLS.DELETE_CATEGORY}/${id}`
+      `${API_URLS.DELETE_CATEGORY}/${mockCategories[0]._id}`
     );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
-  it("should display error message when category deletion throws an exception", async () => {
-    axios.delete.mockRejectedValueOnce(new Error("Deletion failed"));
+  it("should display error message when category deletion API request fails", async () => {
+    axios.delete.mockRejectedValueOnce(new Error("Failed to delete category"));
 
     render(<CreateCategory />);
 
-    // Delete a category
-    const id = mockCategories[0]._id;
-    fireEvent.click(screen.getByTestId(`delete-category-${id}`));
+    fireEvent.click(
+      screen.getByRole("button", { name: /delete electronics category/i })
+    );
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.DELETE_CATEGORY_ERROR
       )
     );
     expect(axios.delete).toHaveBeenCalledWith(
-      `${API_URLS.DELETE_CATEGORY}/${id}`
+      `${API_URLS.DELETE_CATEGORY}/${mockCategories[0]._id}`
     );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
@@ -214,77 +194,70 @@ describe("CreateCategory Component", () => {
 
     render(<CreateCategory />);
 
-    // Update a category
-    const id = mockCategories[0]._id;
-    fireEvent.click(screen.getByTestId(`update-category-${id}`));
-    const modal = screen.getByTestId("update-category-modal");
-    fireEvent.change(within(modal).getByTestId("category-input"), {
-      target: { value: "Updated Category" },
+    const updatedCategory = "Updated Category";
+    fireEvent.click(
+      screen.getByRole("button", { name: /update electronics category/i })
+    );
+    const modal = screen.getByRole("dialog");
+    fireEvent.change(within(modal).getByRole("textbox"), {
+      target: { value: updatedCategory },
     });
-    fireEvent.click(within(modal).getByTestId("submit-button"));
+    fireEvent.click(within(modal).getByRole("button", { name: /submit/i }));
 
-    // Wait for success message and API call
     await waitFor(() =>
       expect(toast.success).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.CATEGORY_UPDATED
       )
     );
     expect(axios.put).toHaveBeenCalledWith(
-      `${API_URLS.UPDATE_CATEGORY}/${id}`,
-      { name: "Updated Category" }
+      `${API_URLS.UPDATE_CATEGORY}/${mockCategories[0]._id}`,
+      { name: updatedCategory }
     );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
-  it("should display error message when category update fails", async () => {
+  it("should display error message when category update API response is unsuccessful", async () => {
     axios.put.mockResolvedValueOnce({ data: { success: false } });
+
     render(<CreateCategory />);
 
-    // Update a category
-    const id = mockCategories[0]._id;
-    fireEvent.click(screen.getByTestId(`update-category-${id}`));
-    const modal = screen.getByTestId("update-category-modal");
-    fireEvent.change(within(modal).getByTestId("category-input"), {
-      target: { value: "Updated Category" },
-    });
-    fireEvent.click(within(modal).getByTestId("submit-button"));
+    fireEvent.click(
+      screen.getByRole("button", { name: /update electronics category/i })
+    );
+    const modal = screen.getByRole("dialog");
+    fireEvent.click(within(modal).getByRole("button", { name: /submit/i }));
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR
       )
     );
     expect(axios.put).toHaveBeenCalledWith(
-      `${API_URLS.UPDATE_CATEGORY}/${id}`,
-      { name: "Updated Category" }
+      `${API_URLS.UPDATE_CATEGORY}/${mockCategories[0]._id}`,
+      expect.any(Object)
     );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
-  it("should display error message when category update throws an exception", async () => {
-    axios.put.mockRejectedValueOnce(new Error("Update failed"));
+  it("should display error message when category update API request fails", async () => {
+    axios.put.mockRejectedValueOnce(new Error("Failed to update category"));
 
     render(<CreateCategory />);
 
-    // Update a category
-    const id = mockCategories[0]._id;
-    fireEvent.click(screen.getByTestId(`update-category-${id}`));
-    const modal = screen.getByTestId("update-category-modal");
-    fireEvent.change(within(modal).getByTestId("category-input"), {
-      target: { value: "Updated Category" },
-    });
-    fireEvent.click(within(modal).getByTestId("submit-button"));
+    fireEvent.click(
+      screen.getByRole("button", { name: /update electronics category/i })
+    );
+    const modal = screen.getByRole("dialog");
+    fireEvent.click(within(modal).getByRole("button", { name: /submit/i }));
 
-    // Wait for error message and API call
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith(
         CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR
       )
     );
     expect(axios.put).toHaveBeenCalledWith(
-      `${API_URLS.UPDATE_CATEGORY}/${id}`,
-      { name: "Updated Category" }
+      `${API_URLS.UPDATE_CATEGORY}/${mockCategories[0]._id}`,
+      expect.any(Object)
     );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
@@ -293,9 +266,11 @@ describe("CreateCategory Component", () => {
     render(<CreateCategory />);
 
     // Attempt to update a category and close the modal
-    const id = mockCategories[0]._id;
-    fireEvent.click(screen.getByTestId(`update-category-${id}`));
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /update electronics category/i })
+    );
+    const modal = screen.getByRole("dialog");
+    fireEvent.click(within(modal).getByRole("button", { name: "Close" }));
 
     // Wait for modal to close and no API call
     expect(axios.put).not.toHaveBeenCalled();
