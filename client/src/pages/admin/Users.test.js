@@ -66,7 +66,7 @@ describe("Users Component", () => {
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_USERS);
   });
 
-  it("should display error message when API call fails", async () => {
+  it("should display error message when API response is unsuccessful", async () => {
     axios.get.mockResolvedValueOnce({ data: { success: false } });
 
     render(<Users />);
@@ -79,7 +79,7 @@ describe("Users Component", () => {
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_USERS);
   });
 
-  it("should display error message when API call throws an exception", async () => {
+  it("should display error message when API request fails", async () => {
     axios.get.mockRejectedValueOnce(new Error("API failed"));
 
     render(<Users />);
