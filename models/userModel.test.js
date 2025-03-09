@@ -9,19 +9,6 @@ const mockUser1 = {
     answer: "answer1",
 }
 
-const mockUser2 = {
-    name: "mockuser2",
-    email: "email@321.com",
-    password: "password321",
-    phone: "97654321",
-    address: "address",
-    answer: "answer2",
-}
-
-
-const users = [ mockUser1, mockUser2];
-
-
 const mockUser1WithRole = {
     name: "mockuser",
     email: "email@123.com",
