@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      match: [/.+\@.+\..+/, "Please enter a valid email address"],
     },
     password: {
       type: String,
@@ -19,10 +20,17 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       required: true,
+      match: [/^\d+$/, "Phone number must contain only digits"],
     },
     address: {
       type: {},
       required: true,
+      validate: {
+        validator: function (value) {
+          return value && Object.keys(value).length > 0;
+        },
+        message: "Address must be a non-empty object",
+      },
     },
     answer: {
       type: String,
