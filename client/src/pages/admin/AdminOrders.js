@@ -15,8 +15,8 @@ export const ADMIN_ORDERS_STRINGS = {
 };
 
 export const API_URLS = {
-  GET_ALL_ORDERS: "/api/v1/auth/all-orders",
-  UPDATE_ORDER_STATUS: "/api/v1/auth/order-status",
+  GET_ALL_ORDERS: "/api/v1/order/all-orders",
+  UPDATE_ORDER_STATUS: "/api/v1/order/order-status",
   GET_PRODUCT_PHOTO: "/api/v1/product/product-photo",
 };
 

@@ -85,7 +85,7 @@ describe("Orders Page", () => {
     renderWithRouter(<Orders />);
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/orders");
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/order/orders");
     });
 
     expect(screen.getByText(/all orders/i)).toBeInTheDocument();
@@ -163,7 +163,7 @@ describe("Orders Page", () => {
     renderWithRouter(<Orders />);
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/orders");
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/order/orders");
     });
 
     await waitFor(() => {
@@ -187,7 +187,7 @@ describe("Orders Page", () => {
     renderWithRouter(<Orders />);
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/orders");
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/order/orders");
     });
 
     await waitFor(() => {
@@ -218,7 +218,7 @@ describe("Orders Page", () => {
     renderWithRouter(<Orders />);
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith("/api/v1/auth/orders");
+      expect(axios.get).toHaveBeenCalledWith("/api/v1/order/orders");
     });
 
     await waitFor(() => {
