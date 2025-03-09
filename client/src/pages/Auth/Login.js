@@ -20,7 +20,7 @@ const Login = () => {
 		e.preventDefault();
 
 		try {
-			if (!email) {
+			if (!email.trim()) {
 				toast.error("Email is required!");
 				return;
 			}
