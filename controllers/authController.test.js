@@ -604,7 +604,7 @@ describe("Auth Controller Tests", () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.send).toHaveBeenCalledWith({
         success: false,
-        message: "Error While Geting Users",
+        message: "Error while getting users",
         error: expect.any(Error),
       });
     });

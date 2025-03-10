@@ -209,7 +209,7 @@ export const getUsersController = async (req, res) => {
 		console.log(error);
 		res.status(500).send({
 		success: false,
-		message: "Error While Geting Users",
+		message: "Error while getting users",
 		error,
 		});
 	}
