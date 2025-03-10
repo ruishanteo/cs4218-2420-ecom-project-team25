@@ -81,8 +81,6 @@ After setting up both the frontend and backend:
 3. The React app will make API calls to the backend.
 
 
-```
-
 ## Technologies Used
 
 - **Frontend**:
