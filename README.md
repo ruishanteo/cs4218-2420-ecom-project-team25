@@ -5,13 +5,14 @@ This is a full-stack application with a **React frontend** and a **Express.js ba
 
 ## Table of Contents
 
-- [Continuous Integration](#continuous-integration)
-- [Project Setup](#project-setup)
-- [Frontend Setup](#frontend-setup)
-- [Backend Setup](#backend-setup)
-- [Running the Application](#running-the-application)
-- [Technologies Used](#technologies-used)
-- [License](#license)
+- [React Full Stack Project](#react-full-stack-project)
+  - [Table of Contents](#table-of-contents)
+  - [Continuous Integration](#continuous-integration)
+  - [Project Setup](#project-setup)
+  - [Frontend Setup](#frontend-setup)
+  - [Backend Setup](#backend-setup)
+  - [Technologies Used](#technologies-used)
+  - [License](#license)
 
 ## Continuous Integration
 CI is setup in this repo to run on merge/pull request to master. 
@@ -41,44 +42,47 @@ This [link](https://github.com/cs4218/cs4218-2420-ecom-project-team25/actions/ru
 
 2. Install the required dependencies:
    ```bash
-   npm install
+   npm ci
    ```
-
-3. Start the React development server:
-   ```bash
-   npm start
-   ```
-
-Your React application will be running at `http://localhost:6060`.
 
 ## Backend Setup
 
-1. Navigate to the backend directory:
+1. Navigate back to the backend directory (also the root directory of the project):
    ```bash
    cd ..
    ```
 
 2. Install the required dependencies:
    ```bash
-   npm install
+   npm ci
    ```
 
 3. Set up environment variables (e.g., database connection, API keys) in a `.env` file. 
-
-4. Start the backend server:
-   ```bash
-   npm start
    ```
-
-Your backend API will be running at `http://localhost:6060`.
+   PORT = 6060
+   DEV_MODE = development
+   MONGO_URL = 
+   JWT_SECRET = 
+   BRAINTREE_MERCHANT_ID = 
+   BRAINTREE_PUBLIC_KEY = 
+   BRAINTREE_PRIVATE_KEY = 
+   ```
 
 ## Running the Application
 
 After setting up both the frontend and backend:
 
-1. Ensure the backend is running (`http://localhost:6060`).
-2. Run the frontend (`http://localhost:6060`).
-3. The React app will make API calls to the backend.
+1. Start the backend server
+   ```
+   npm run server
+   ```
+   Your backend API will be running at `http://localhost:6060`.
+
+2. Start the frontend app
+   ```
+   npm run client
+   ```
+   Your React application should be running at `http://localhost:3000` (or another available port if `3000` is unavailable).
 
 
 ## Technologies Used
