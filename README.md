@@ -72,13 +72,15 @@ This [link](https://github.com/cs4218/cs4218-2420-ecom-project-team25/actions/ru
 
 After setting up both the frontend and backend:
 
-1. Start the backend server
+1. Navigate to the root directory first.
+   
+2. Start the backend server
    ```
    npm run server
    ```
    Your backend API will be running at `http://localhost:6060`.
 
-2. Start the frontend app
+3. Start the frontend app
    ```
    npm run client
    ```
