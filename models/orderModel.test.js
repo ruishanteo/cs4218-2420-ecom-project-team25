@@ -49,4 +49,24 @@ describe("Order Model", () => {
     );
   });
 
+  it("should create an order with a product", async () => {
+    const order = new orderModel({
+      products: [new mongoose.Types.ObjectId()], // Empty array (invalid)
+      payment: {},
+      buyer: new mongoose.Types.ObjectId(),
+    });
+
+    await expect(order.validate()).resolves.toBeUndefined();
+  });
+
+  it("should create an order with two product", async () => {
+    const order = new orderModel({
+      products: [new mongoose.Types.ObjectId(), new mongoose.Types.ObjectId()], // Empty array (invalid)
+      payment: {},
+      buyer: new mongoose.Types.ObjectId(),
+    });
+
+    await expect(order.validate()).resolves.toBeUndefined();
+  });
+
 });
