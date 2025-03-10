@@ -16,7 +16,7 @@ This is a full-stack application with a **React frontend** and a **Express.js ba
 ## Continuous Integration
 CI is setup in this repo to run on merge/pull request to master. 
 
-This [link](https://github.com/cs4218/cs4218-2420-ecom-project-team25/actions/runs/13754148220/job/38458962029) will bring you to the latest CI run for MS1. 
+This [link](https://github.com/cs4218/cs4218-2420-ecom-project-team25/actions/runs/13755352923/job/38461808305) will bring you to the latest CI run for MS1. 
 
 
 
