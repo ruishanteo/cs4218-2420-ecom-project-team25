@@ -195,3 +195,22 @@ export const testController = (req, res) => {
 		res.send({ error });
 	}
 };
+
+//get users
+export const getUsersController = async (req, res) => {
+	try {
+		const users = await userModel.find({ role: 0 });
+		res.status(200).send({
+		success: true,
+		message: "All Users",
+		users,
+		});
+	} catch (error) {
+		console.log(error);
+		res.status(500).send({
+		success: false,
+		message: "Error while getting users",
+		error,
+		});
+	}
+};
