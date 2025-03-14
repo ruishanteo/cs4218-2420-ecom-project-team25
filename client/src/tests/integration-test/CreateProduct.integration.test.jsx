@@ -10,7 +10,7 @@ import {
   fireEvent,
   act,
 } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { Routes, Route, MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 
 import CreateProduct, {
@@ -63,6 +63,9 @@ function getCaseInsensitiveRegex(text) {
 
 describe("CreateProduct Integration Tests", () => {
   const mockCategories = [{ _id: "1", name: "Electronics" }];
+  const MockProducts = () => (
+    <div data-testid="mock-products-page">Products Page</div>
+  );
   const user = userEvent.setup();
 
   beforeEach(() => {
@@ -75,8 +78,14 @@ describe("CreateProduct Integration Tests", () => {
 
   const setup = async () => {
     render(
-      <MemoryRouter>
-        <CreateProduct />
+      <MemoryRouter initialEntries={["/dashboard/admin/create-product"]}>
+        <Routes>
+          <Route
+            path="/dashboard/admin/create-product"
+            element={<CreateProduct />}
+          />
+          <Route path="/dashboard/admin/products" element={<MockProducts />} />
+        </Routes>
       </MemoryRouter>
     );
 
@@ -189,10 +198,11 @@ describe("CreateProduct Integration Tests", () => {
     );
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith(
-        CREATE_PRODUCT_STRINGS.PRODUCT_CREATED
-      );
+      expect(screen.getByTestId("mock-products-page")).toBeInTheDocument(); // user navigated to Products
     });
+    expect(toast.success).toHaveBeenCalledWith(
+      CREATE_PRODUCT_STRINGS.PRODUCT_CREATED
+    );
     expect(axios.post).toHaveBeenCalledWith(
       API_URLS.CREATE_PRODUCT,
       expect.any(FormData)
