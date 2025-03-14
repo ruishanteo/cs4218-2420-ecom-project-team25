@@ -16,12 +16,14 @@ import CreateCategory, {
   API_URLS,
   CREATE_CATEGORY_STRINGS,
 } from "../../pages/admin/CreateCategory";
+import { AuthProvider } from "../../context/auth";
+import { CartProvider } from "../../context/cart";
+import { SearchProvider } from "../../context/search";
 
 jest.spyOn(toast, "success");
 jest.spyOn(toast, "error");
 
 jest.mock("axios");
-jest.mock("../../components/Header");
 
 Object.defineProperty(window, "matchMedia", {
   value: jest.fn(() => {
@@ -32,6 +34,16 @@ Object.defineProperty(window, "matchMedia", {
     };
   }),
 });
+
+const Providers = ({ children }) => {
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <SearchProvider>{children}</SearchProvider>
+      </CartProvider>
+    </AuthProvider>
+  );
+};
 
 describe("CreateCategory Integration Tests", () => {
   const user = userEvent.setup();
@@ -46,14 +58,16 @@ describe("CreateCategory Integration Tests", () => {
 
   const setup = async () => {
     render(
-      <MemoryRouter initialEntries={["/dashboard/admin/create-category"]}>
-        <Routes>
-          <Route
-            path="/dashboard/admin/create-category"
-            element={<CreateCategory />}
-          />
-        </Routes>
-      </MemoryRouter>
+      <Providers>
+        <MemoryRouter initialEntries={["/dashboard/admin/create-category"]}>
+          <Routes>
+            <Route
+              path="/dashboard/admin/create-category"
+              element={<CreateCategory />}
+            />
+          </Routes>
+        </MemoryRouter>
+      </Providers>
     );
 
     await waitFor(() => {
