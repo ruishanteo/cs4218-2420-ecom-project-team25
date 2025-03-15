@@ -16,11 +16,11 @@ import "@testing-library/jest-dom";
 import UpdateProduct, {
   API_URLS,
   UPDATE_PRODUCT_STRINGS,
-} from "../../pages/admin/UpdateProduct";
-import { API_URLS as CATEGORY_API_URLS } from "../../hooks/useCategory";
-import { AuthProvider } from "../../context/auth";
-import { CartProvider } from "../../context/cart";
-import { SearchProvider } from "../../context/search";
+} from "../../../../pages/admin/UpdateProduct";
+import { API_URLS as CATEGORY_API_URLS } from "../../../../hooks/useCategory";
+import { AuthProvider } from "../../../../context/auth";
+import { CartProvider } from "../../../../context/cart";
+import { SearchProvider } from "../../../../context/search";
 
 jest.spyOn(toast, "success");
 jest.spyOn(toast, "error");
