@@ -71,7 +71,7 @@ module.exports = defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: "USE_TEST_DB=true npm run server",
+      command: "npm run test-server",
       url: "http://localhost:6060",
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
