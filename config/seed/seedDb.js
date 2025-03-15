@@ -159,6 +159,5 @@ export const seedDb = async () => {
   console.log(productsIdMap);
 };
 
-export const clearDB = async () => {
-  //   await mongoose.connection.dropDatabase();
-};
+export const ADMIN_USER = ADMIN_USERS[0];
+export const USER = USERS[0];
