@@ -48,16 +48,16 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      # - name: Install SonarQube Scanner
-      #   run: npm install -g sonarqube-scanner
+      - name: Install SonarQube Scanner
+        run: npm install -g sonarqube-scanner
 
-      # - name: Run SonarQube Analysis
-      #   env:
-      #     SONAR_TOKEN: squ_f7201e61c3e6601e639f92589d7be10d31ba8d89
-      #   run: |
-      #     sonar-scanner \
-      #       -Dsonar.projectKey=econ \
-      #       -Dsonar.sources=. \
-      #       -Dsonar.host.url=http://13.250.126.232 \
-      #       -Dsonar.token=squ_f7201e61c3e6601e639f92589d7be10d31ba8d89 \
-      #       -Dsonar.javascript.lcov.reportPaths=coverage/**/lcov.info
+      - name: Run SonarQube Analysis
+        env:
+          SONAR_TOKEN: sqa_0f5269ea22e3abcb15bca74502059fc3e65d3203
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=econ \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=http://132.226.117.124 \
+            -Dsonar.token=sqa_0f5269ea22e3abcb15bca74502059fc3e65d3203 \
+            -Dsonar.javascript.lcov.reportPaths=coverage/**/lcov.info
