@@ -265,10 +265,10 @@ const UpdateProduct = () => {
                   }}
                   value={shipping ? "true" : "false"}
                 >
-                  <Option value="true">
+                  <Option value="false">
                     {UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_NO_ACTION}
                   </Option>
-                  <Option value="false">
+                  <Option value="true">
                     {UPDATE_PRODUCT_STRINGS.SELECT_SHIPPING_YES_ACTION}
                   </Option>
                 </Select>
