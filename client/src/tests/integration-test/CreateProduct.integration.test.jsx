@@ -17,12 +17,14 @@ import CreateProduct, {
   CREATE_PRODUCT_STRINGS,
   API_URLS,
 } from "../../pages/admin/CreateProduct";
+import { AuthProvider } from "../../context/auth";
+import { CartProvider } from "../../context/cart";
+import { SearchProvider } from "../../context/search";
 
 jest.spyOn(toast, "success");
 jest.spyOn(toast, "error");
 
 jest.mock("axios");
-jest.mock("../../components/Header");
 
 jest.mock("antd", () => {
   const MockSelect = ({
@@ -44,7 +46,8 @@ jest.mock("antd", () => {
   MockSelect.Option = ({ children, value }) => (
     <option value={value}>{children}</option>
   );
-  return { Select: MockSelect };
+  const MockBadge = ({ children }) => <div>{children}</div>;
+  return { Select: MockSelect, Badge: MockBadge };
 });
 
 Object.defineProperty(window, "matchMedia", {
@@ -56,6 +59,16 @@ Object.defineProperty(window, "matchMedia", {
     };
   }),
 });
+
+const Providers = ({ children }) => {
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <SearchProvider>{children}</SearchProvider>
+      </CartProvider>
+    </AuthProvider>
+  );
+};
 
 function getCaseInsensitiveRegex(text) {
   return new RegExp(text, "i");
@@ -78,15 +91,20 @@ describe("CreateProduct Integration Tests", () => {
 
   const setup = async () => {
     render(
-      <MemoryRouter initialEntries={["/dashboard/admin/create-product"]}>
-        <Routes>
-          <Route
-            path="/dashboard/admin/create-product"
-            element={<CreateProduct />}
-          />
-          <Route path="/dashboard/admin/products" element={<MockProducts />} />
-        </Routes>
-      </MemoryRouter>
+      <Providers>
+        <MemoryRouter initialEntries={["/dashboard/admin/create-product"]}>
+          <Routes>
+            <Route
+              path="/dashboard/admin/create-product"
+              element={<CreateProduct />}
+            />
+            <Route
+              path="/dashboard/admin/products"
+              element={<MockProducts />}
+            />
+          </Routes>
+        </MemoryRouter>
+      </Providers>
     );
 
     await waitFor(() => {
