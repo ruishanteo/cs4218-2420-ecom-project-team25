@@ -16,10 +16,10 @@ import "@testing-library/jest-dom";
 import CreateProduct, {
   CREATE_PRODUCT_STRINGS,
   API_URLS,
-} from "../../../../pages/admin/CreateProduct";
-import { AuthProvider } from "../../../../context/auth";
-import { CartProvider } from "../../../../context/cart";
-import { SearchProvider } from "../../../../context/search";
+} from "../../../pages/admin/CreateProduct";
+import { AuthProvider } from "../../../context/auth";
+import { CartProvider } from "../../../context/cart";
+import { SearchProvider } from "../../../context/search";
 
 jest.spyOn(toast, "success");
 jest.spyOn(toast, "error");

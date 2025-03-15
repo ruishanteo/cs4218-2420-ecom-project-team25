@@ -15,10 +15,10 @@ import toast from "react-hot-toast";
 import CreateCategory, {
   API_URLS,
   CREATE_CATEGORY_STRINGS,
-} from "../../../../pages/admin/CreateCategory";
-import { AuthProvider } from "../../../../context/auth";
-import { CartProvider } from "../../../../context/cart";
-import { SearchProvider } from "../../../../context/search";
+} from "../../../pages/admin/CreateCategory";
+import { AuthProvider } from "../../../context/auth";
+import { CartProvider } from "../../../context/cart";
+import { SearchProvider } from "../../../context/search";
 
 jest.spyOn(toast, "success");
 jest.spyOn(toast, "error");
