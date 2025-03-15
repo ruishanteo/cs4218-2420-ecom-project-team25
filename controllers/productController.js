@@ -377,14 +377,21 @@ export const brainTreePaymentController = async (req, res) => {
           submitForSettlement: true,
         },
       },
-      function (error, result) {
+      async function (error, result) {
         if (result) {
-          const order = new orderModel({
-            products: cart,
-            payment: result,
-            buyer: req.user._id,
-          }).save();
-          res.json({ ok: true });
+          // fix bug with empty cart
+          if (cart.length > 0) {
+            // wait for order to be saved
+            const order = await new orderModel({
+              products: cart,
+              payment: result,
+              buyer: req.user._id,
+            }).save();
+            console.log('<<<', order);
+            res.json({ ok: true });
+          } else {
+            res.status(500).send({ error: 'Cart is empty' });
+          }
         } else {
           res.status(500).send(error);
         }
