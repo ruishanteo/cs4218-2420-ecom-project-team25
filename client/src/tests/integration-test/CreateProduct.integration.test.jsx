@@ -131,7 +131,7 @@ describe("CreateProduct Integration Tests", () => {
     expect(categorySelect).toBeInTheDocument();
     const options = within(categorySelect).getAllByRole("option");
     expect(options).toHaveLength(mockCategories.length);
-    expect(options[0]).toHaveTextContent("Electronics");
+    expect(options[0]).toHaveTextContent(mockCategories[0].name);
   });
 
   it("should fill and submit the form, calling API and showing success toast", async () => {
