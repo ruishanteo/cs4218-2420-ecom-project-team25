@@ -11,7 +11,7 @@
     "sonarqube": "sonar-scanner",
     "test": "npm run test:frontend && npm run test:backend",
     "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js --coverage",
-    "test:frontend:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js --coverage --testPathPattern=client/src/tests/integration-test/",
+    "test:frontend:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js --coverage --testPathPattern=client/src/integration-tests/",
     "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js --coverage"
   },
   "keywords": [],

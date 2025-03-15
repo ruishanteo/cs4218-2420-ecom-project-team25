@@ -5,11 +5,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import "@testing-library/jest-dom";
 
-import Users, { API_URLS, USERS_STRINGS } from "../../../../pages/admin/Users";
-import { API_URLS as CATEGORY_API_URLS } from "../../../../hooks/useCategory";
-import { AuthProvider } from "../../../../context/auth";
-import { CartProvider } from "../../../../context/cart";
-import { SearchProvider } from "../../../../context/search";
+import Users, { API_URLS, USERS_STRINGS } from "../../../pages/admin/Users";
+import { API_URLS as CATEGORY_API_URLS } from "../../../hooks/useCategory";
+import { AuthProvider } from "../../../context/auth";
+import { CartProvider } from "../../../context/cart";
+import { SearchProvider } from "../../../context/search";
 
 jest.spyOn(toast, "success");
 jest.spyOn(toast, "error");

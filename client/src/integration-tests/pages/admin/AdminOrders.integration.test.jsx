@@ -8,11 +8,11 @@ import "@testing-library/jest-dom";
 import AdminOrders, {
   ADMIN_ORDERS_STRINGS,
   API_URLS,
-} from "../../../../pages/admin/AdminOrders";
-import { API_URLS as CATEGORY_API_URLS } from "../../../../hooks/useCategory";
-import { AuthProvider } from "../../../../context/auth";
-import { CartProvider } from "../../../../context/cart";
-import { SearchProvider } from "../../../../context/search";
+} from "../../../pages/admin/AdminOrders";
+import { API_URLS as CATEGORY_API_URLS } from "../../../hooks/useCategory";
+import { AuthProvider } from "../../../context/auth";
+import { CartProvider } from "../../../context/cart";
+import { SearchProvider } from "../../../context/search";
 
 jest.spyOn(toast, "success");
 jest.spyOn(toast, "error");
