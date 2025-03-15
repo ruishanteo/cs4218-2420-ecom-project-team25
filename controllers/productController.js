@@ -387,7 +387,6 @@ export const brainTreePaymentController = async (req, res) => {
               payment: result,
               buyer: req.user._id,
             }).save();
-            console.log('<<<', order);
             res.json({ ok: true });
           } else {
             res.status(500).send({ error: 'Cart is empty' });
