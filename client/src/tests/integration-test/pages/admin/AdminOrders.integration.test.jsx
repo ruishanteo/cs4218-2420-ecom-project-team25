@@ -8,11 +8,11 @@ import "@testing-library/jest-dom";
 import AdminOrders, {
   ADMIN_ORDERS_STRINGS,
   API_URLS,
-} from "../../pages/admin/AdminOrders";
-import { API_URLS as CATEGORY_API_URLS } from "../../hooks/useCategory";
-import { AuthProvider } from "../../context/auth";
-import { CartProvider } from "../../context/cart";
-import { SearchProvider } from "../../context/search";
+} from "../../../../pages/admin/AdminOrders";
+import { API_URLS as CATEGORY_API_URLS } from "../../../../hooks/useCategory";
+import { AuthProvider } from "../../../../context/auth";
+import { CartProvider } from "../../../../context/cart";
+import { SearchProvider } from "../../../../context/search";
 
 jest.spyOn(toast, "success");
 jest.spyOn(toast, "error");
@@ -112,10 +112,10 @@ describe("AdminOrders Integration Tests", () => {
     );
   };
 
-  const mockAxiosGet = (
+  const mockAxiosGet = ({
     failOrdersFetch = false,
-    unsuccessfulOrdersFetch = false
-  ) => {
+    unsuccessfulOrdersFetch = false,
+  } = {}) => {
     axios.get.mockImplementation((url) => {
       if (url === CATEGORY_API_URLS.GET_CATEGORIES) {
         return Promise.resolve({
@@ -171,7 +171,7 @@ describe("AdminOrders Integration Tests", () => {
 
   it("should show error on failed orders fetch", async () => {
     setAuthInLocalStorage(mockAuthData);
-    mockAxiosGet(true, false);
+    mockAxiosGet({ failOrdersFetch: true });
 
     setup();
 
@@ -238,7 +238,7 @@ describe("AdminOrders Integration Tests", () => {
 
   it("should handle unsuccessful order fetch response (success: false)", async () => {
     setAuthInLocalStorage(mockAuthData);
-    mockAxiosGet(false, true);
+    mockAxiosGet({ unsuccessfulOrdersFetch: true });
 
     setup();
 
