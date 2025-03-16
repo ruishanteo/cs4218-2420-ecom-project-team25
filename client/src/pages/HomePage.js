@@ -70,8 +70,9 @@ const HomePage = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setLoading(false);
       setProducts([...products, ...data?.products]);
+      await filterProduct();
+      setLoading(false);
     } catch (error) {
       console.log(error);
       setLoading(false);
