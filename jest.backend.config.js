@@ -14,7 +14,7 @@ module.exports = {
   // jest code coverage
   collectCoverage: true,
   collectCoverageFrom: [
-    "config/**/*.js",
+    "config/db.js",
     "controllers/**/*.js",
     "helpers/**/*.js",
     "middlewares/**/*.js",

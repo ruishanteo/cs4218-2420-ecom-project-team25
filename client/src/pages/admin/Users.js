@@ -48,33 +48,35 @@ const Users = () => {
 
   return (
     <Layout title={"Dashboard - All Users"}>
-      <div className="container-fluid m-3 p-3">
+      <div className="container-fluid mt-3 mb-3 p-3">
         <div className="row">
           <div className="col-md-3">
             <AdminMenu />
           </div>
           <div className="col-md-9">
             <h1>All Users</h1>
-            <table className="table table-bordered">
-              <thead>
-                <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">Phone</th>
-                  <th scope="col">Address</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((user, i) => (
-                  <tr key={user._id} data-testid={`user-display-item-${i}`}>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>{user.phone}</td>
-                    <td>{user.address}</td>
+            <div className="table-responsive" style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}>
+              <table className="table table-bordered">
+                <thead className="table-light" style={{ position: "sticky", top: 0, zIndex: 1, boxShadow: "0 2px 3px rgba(0,0,0,0.1)" }}>
+                  <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Phone</th>
+                    <th scope="col">Address</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {users.map((user, i) => (
+                    <tr key={user._id} data-testid={`user-display-item-${i}`}>
+                      <td>{user.name}</td>
+                      <td>{user.email}</td>
+                      <td>{user.phone}</td>
+                      <td>{user.address}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
