@@ -5,7 +5,7 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import "@testing-library/jest-dom";
 
 import AdminDashboard from "../../../pages/admin/AdminDashboard";
-import AdminRoute from "../../../components/routes/AdminRoute";
+import AdminRoute from "../../../components/Routes/AdminRoute";
 import { CartProvider } from "../../../context/cart";
 import { SearchProvider } from "../../../context/search";
 import { useAuth } from "../../../context/auth";
