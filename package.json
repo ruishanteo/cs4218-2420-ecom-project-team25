@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js",
+    "test-server": "USE_TEST_DB=true npm run server",
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
@@ -13,7 +14,7 @@
     "test:frontend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js --coverage",
     "test:frontend:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.frontend.config.js --coverage --testPathPattern=client/src/tests/integration-test/",
     "test:backend": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js --coverage",
-    "test:backend:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.cjs --coverage --testPathPattern=tests/integration-test/"
+    "test:backend:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.backend.config.js --coverage --testPathPattern=tests/integration-test/"
   },
   "keywords": [],
   "author": "RP",
