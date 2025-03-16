@@ -31,6 +31,7 @@ const PRODUCT = {
   quantity: "10",
   shipping: "Yes",
   category: CATEGORIES[0],
+  photo: "ui-tests/resources/book.jpg",
 };
 
 const UPDATED_PRODUCT = {
@@ -40,6 +41,7 @@ const UPDATED_PRODUCT = {
   quantity: "50",
   shipping: "No",
   category: CATEGORIES[1],
+  photo: "ui-tests/resources/book.jpg",
 };
 
 async function verifyProductDetails(page, product) {
@@ -61,13 +63,7 @@ async function verifyProductDetails(page, product) {
 
 async function fillInProductDetails(
   page,
-  category = "",
-  photo = "",
-  name = "",
-  description = "",
-  price = "",
-  quantity = "",
-  shipping = ""
+  { category, photo, name, description, price, quantity, shipping }
 ) {
   if (category) {
     await page.getByRole("combobox", { name: "Select a category" }).click();
@@ -137,16 +133,7 @@ test("should create, update and delete product successfully", async ({
   await page.getByRole("link", { name: "Create Product" }).click();
 
   // Fill in the product details
-  await fillInProductDetails(
-    page,
-    PRODUCT.category,
-    "ui-tests/book.jpg",
-    PRODUCT.name,
-    PRODUCT.description,
-    PRODUCT.price,
-    PRODUCT.quantity,
-    PRODUCT.shipping
-  );
+  await fillInProductDetails(page, PRODUCT);
 
   // Click the create product button
   await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
@@ -255,16 +242,10 @@ test("should not create product if category is empty", async ({ page }) => {
   await page.getByRole("link", { name: "Create Product" }).click();
 
   // Fill in the product details
-  await fillInProductDetails(
-    page,
-    "",
-    "ui-tests/book.jpg",
-    PRODUCT.name,
-    PRODUCT.description,
-    PRODUCT.price,
-    PRODUCT.quantity,
-    PRODUCT.shipping
-  );
+  await fillInProductDetails(page, {
+    ...PRODUCT,
+    category: "",
+  });
   await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
 
   // Verify the error message
@@ -276,16 +257,10 @@ test("should not create product if name is empty", async ({ page }) => {
   await page.getByRole("link", { name: "Create Product" }).click();
 
   // Fill in the product details
-  await fillInProductDetails(
-    page,
-    PRODUCT.category,
-    "ui-tests/book.jpg",
-    "",
-    PRODUCT.description,
-    PRODUCT.price,
-    PRODUCT.quantity,
-    PRODUCT.shipping
-  );
+  await fillInProductDetails(page, {
+    ...PRODUCT,
+    name: "",
+  });
   await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
 
   // Verify the error message
@@ -297,16 +272,10 @@ test("should not create product if description is empty", async ({ page }) => {
   await page.getByRole("link", { name: "Create Product" }).click();
 
   // Fill in the product details
-  await fillInProductDetails(
-    page,
-    PRODUCT.category,
-    "ui-tests/book.jpg",
-    PRODUCT.name,
-    "",
-    PRODUCT.price,
-    PRODUCT.quantity,
-    PRODUCT.shipping
-  );
+  await fillInProductDetails(page, {
+    ...PRODUCT,
+    description: "",
+  });
   await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
 
   // Verify the error message
@@ -318,16 +287,10 @@ test("should not create product if price is empty", async ({ page }) => {
   await page.getByRole("link", { name: "Create Product" }).click();
 
   // Fill in the product details
-  await fillInProductDetails(
-    page,
-    PRODUCT.category,
-    "ui-tests/book.jpg",
-    PRODUCT.name,
-    PRODUCT.description,
-    "",
-    PRODUCT.quantity,
-    PRODUCT.shipping
-  );
+  await fillInProductDetails(page, {
+    ...PRODUCT,
+    price: "",
+  });
   await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
 
   // Verify the error message
@@ -339,16 +302,10 @@ test("should not create product if quantity is empty", async ({ page }) => {
   await page.getByRole("link", { name: "Create Product" }).click();
 
   // Fill in the product details
-  await fillInProductDetails(
-    page,
-    PRODUCT.category,
-    "ui-tests/book.jpg",
-    PRODUCT.name,
-    PRODUCT.description,
-    PRODUCT.price,
-    "",
-    PRODUCT.shipping
-  );
+  await fillInProductDetails(page, {
+    ...PRODUCT,
+    quantity: "",
+  });
   await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
 
   // Verify the error message
@@ -360,16 +317,10 @@ test("should not create product if shipping is empty", async ({ page }) => {
   await page.getByRole("link", { name: "Create Product" }).click();
 
   // Fill in the product details
-  await fillInProductDetails(
-    page,
-    PRODUCT.category,
-    "ui-tests/book.jpg",
-    PRODUCT.name,
-    PRODUCT.description,
-    PRODUCT.price,
-    PRODUCT.quantity,
-    ""
-  );
+  await fillInProductDetails(page, {
+    ...PRODUCT,
+    shipping: "",
+  });
   await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
 
   // Verify the error message
@@ -381,16 +332,10 @@ test("should still create product with no photo", async ({ page }) => {
   await page.getByRole("link", { name: "Create Product" }).click();
 
   // Fill in the product details
-  await fillInProductDetails(
-    page,
-    PRODUCT.category,
-    "",
-    PRODUCT.name,
-    PRODUCT.description,
-    PRODUCT.price,
-    PRODUCT.quantity,
-    PRODUCT.shipping
-  );
+  await fillInProductDetails(page, {
+    ...PRODUCT,
+    photo: "",
+  });
   await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
 
   // Verify the product has been created
