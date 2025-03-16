@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js",
+    "test-server": "USE_TEST_DB=true npm run server",
     "client": "npm start --prefix ./client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "sonarqube": "sonar-scanner",
