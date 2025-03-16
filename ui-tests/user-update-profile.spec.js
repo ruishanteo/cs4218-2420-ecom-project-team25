@@ -64,6 +64,14 @@ test.beforeEach(
   }
 );
 
+test("should display user profile details", async ({ page }) => {
+  await expect(page.getByRole('textbox', { name: 'Enter Your Name' })).toHaveValue(USER.name);
+  await expect(page.getByRole('textbox', { name: 'Enter Your Email' })).toHaveValue(USER.email);
+  await expect(page.getByRole('textbox', { name: 'Enter Your Phone' })).toHaveValue(USER.phone);
+  await expect(page.getByRole('textbox', { name: 'Enter Your Address' })).toHaveValue(USER.address);
+
+})
+
 test("should update profile successfully", async ({page} ) => {
   await fillInUserDetails(page, UPDATED_USER);
   await page.getByRole('button', { name: 'UPDATE' }).click();
@@ -152,5 +160,14 @@ test("should display error message when address field is empty", async ({page}) 
   await expect(page.getByText('Address is required')).toBeVisible();
 })
 
-
-
+test("should redirect to login page if not logged in", async ({ page }) => {
+  // logout 
+  await page.getByRole('button', { name: 'User' }).click();
+  await page.getByRole('link', { name: 'Logout' }).click();
+  // navigate to users page
+  await page.goto("/dashboard/admin/users");
+  // check if redirected to login page
+  await page.waitForURL("/login", {
+      timeout: 5000,
+  });
+});
