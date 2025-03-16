@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 
 export const PRODUCTS_STRINGS = {
-  FETCH_PRODUCTS_ERROR: "Someething went wrong while fetching products",
+  FETCH_PRODUCTS_ERROR: "Something went wrong while fetching products",
 };
 
 export const API_URLS = {
@@ -44,20 +44,16 @@ const Products = () => {
         </div>
         <div className="col-md-9 ">
           <h1 className="text-center">All Products List</h1>
-          <div className="d-flex" data-testid="admin-products-list">
+          <div className="d-flex">
             {products?.map((p, index) => (
               <Link
                 key={p._id}
                 to={`/dashboard/admin/product/${p.slug}`}
                 className="product-link"
               >
-                <div
-                  className="card m-2"
-                  style={{ width: "18rem" }}
-                  data-testid={`admin-product-${index}`}
-                >
+                <div className="card m-2" style={{ width: "18rem" }}>
                   <img
-                    src={`${API_URLS.GET_PHOTO}/${p._id}`}
+                    src={`${API_URLS.GET_PHOTO}/${p._id}?id=${Date.now()}`}
                     className="card-img-top"
                     alt={p.name}
                   />

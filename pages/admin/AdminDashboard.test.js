@@ -5,14 +5,11 @@ import "@testing-library/jest-dom/extend-expect";
 import AdminDashboard from "./AdminDashboard";
 import { useAuth } from "../../context/auth";
 
-// Mock dependencies
 jest.mock("../../components/Layout", () => ({ children }) => (
-  <div data-testid="layout">{children}</div>
+  <div>{children}</div>
 ));
 
-jest.mock("../../components/AdminMenu", () => () => (
-  <div data-testid="admin-menu">Mock AdminMenu</div>
-));
+jest.mock("../../components/AdminMenu", () => () => <div>Mock AdminMenu</div>);
 
 jest.mock("../../context/auth", () => ({
   useAuth: jest.fn(),
@@ -32,12 +29,24 @@ describe("AdminDashboard Component", () => {
 
     render(<AdminDashboard />);
 
-    // Expect the AdminMenu component to be rendered with the correct props
-    expect(screen.getByTestId("admin-name")).toHaveTextContent("Admin User");
-    expect(screen.getByTestId("admin-email")).toHaveTextContent(
-      "admin@example.com"
-    );
-    expect(screen.getByTestId("admin-contact")).toHaveTextContent("1234567890");
+    expect(
+      screen.getByRole("heading", {
+        level: 3,
+        name: /admin name : admin user/i,
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 3,
+        name: /admin email : admin@example.com/i,
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 3,
+        name: /admin contact : 1234567890/i,
+      })
+    ).toBeInTheDocument();
   });
 
   it("should display empty admin details when not authenticated", () => {
@@ -45,13 +54,14 @@ describe("AdminDashboard Component", () => {
 
     render(<AdminDashboard />);
 
-    // Expect the AdminMenu component to be rendered with empty props
-    expect(screen.getByTestId("admin-name")).toHaveTextContent("Admin Name :");
-    expect(screen.getByTestId("admin-email")).toHaveTextContent(
-      "Admin Email :"
-    );
-    expect(screen.getByTestId("admin-contact")).toHaveTextContent(
-      "Admin Contact :"
-    );
+    expect(
+      screen.getByRole("heading", { level: 3, name: /admin name :/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: /admin email :/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: /admin contact :/i })
+    ).toBeInTheDocument();
   });
 });

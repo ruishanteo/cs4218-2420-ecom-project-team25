@@ -15,8 +15,8 @@ export const ADMIN_ORDERS_STRINGS = {
 };
 
 export const API_URLS = {
-  GET_ALL_ORDERS: "/api/v1/auth/all-orders",
-  UPDATE_ORDER_STATUS: "/api/v1/auth/order-status",
+  GET_ALL_ORDERS: "/api/v1/order/all-orders",
+  UPDATE_ORDER_STATUS: "/api/v1/order/order-status",
   GET_PRODUCT_PHOTO: "/api/v1/product/product-photo",
 };
 
@@ -78,15 +78,11 @@ const AdminOrders = () => {
         <div className="col-md-3">
           <AdminMenu />
         </div>
-        <div className="col-md-9" data-testid="admin-orders-list">
+        <div className="col-md-9">
           <h1 className="text-center">All Orders</h1>
           {orders?.map((o, i) => {
             return (
-              <div
-                className="border shadow"
-                key={o._id}
-                data-testid={`admin-order-item-${i}`}
-              >
+              <div className="border shadow" key={o._id}>
                 <table className="table">
                   <thead>
                     <tr>
@@ -103,7 +99,6 @@ const AdminOrders = () => {
                       <td>{i + 1}</td>
                       <td>
                         <Select
-                          data-testid={`status-${o._id}`}
                           variant="borderless"
                           onChange={(value) => handleChange(o._id, value)}
                           defaultValue={o?.status}
@@ -127,7 +122,9 @@ const AdminOrders = () => {
                     <div className="row mb-2 p-3 card flex-row" key={p._id}>
                       <div className="col-md-4">
                         <img
-                          src={`${API_URLS.GET_PRODUCT_PHOTO}/${p._id}`}
+                          src={`${API_URLS.GET_PRODUCT_PHOTO}/${
+                            p._id
+                          }?id=${Date.now()}`}
                           className="card-img-top"
                           alt={p.name}
                           width="100px"
