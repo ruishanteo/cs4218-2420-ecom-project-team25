@@ -2,6 +2,28 @@ import { test, expect } from "@playwright/test";
 
 import { ADMIN_USER, CATEGORIES, PRODUCTS } from "../config/seed/seedDb";
 
+/**
+ * Test Plan:
+ * - Login as admin and navigate to admin dashboard
+ * - Create a product
+ * - Verify the product has been created
+ * - Update the product
+ * - Verify the product has been updated
+ * - Delete the product
+ * - Verify the product has been deleted
+ *
+ * - Test for not deleting product if cancel is clicked
+ *
+ * - Test for error messages when required fields are empty
+ * - Test for error messages when category is empty
+ * - Test for error messages when name is empty
+ * - Test for error messages when description is empty
+ * - Test for error messages when price is empty
+ * - Test for error messages when quantity is empty
+ * - Test for error messages when shipping is empty
+ * - Test for creating product with no photo
+ */
+
 const PRODUCT = {
   name: "Dream Long Book",
   description: "Book about dreaming too long",
@@ -179,6 +201,9 @@ test("should create, update and delete product successfully", async ({
   // Verify the product has been deleted
   await expect(
     page.getByRole("heading", { name: "All Products List" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: PRODUCTS[0].name })
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: UPDATED_PRODUCT.name })
@@ -373,4 +398,21 @@ test("should still create product with no photo", async ({ page }) => {
     page.getByRole("heading", { name: "All Products List" })
   ).toBeVisible();
   await expect(page.getByRole("link", { name: PRODUCT.name })).toBeVisible();
+
+  // Clean up and delete the product
+  await page.getByRole("link", { name: PRODUCT.name }).click();
+  page.once("dialog", async (dialog) => {
+    console.log(`Dialog message: ${dialog.message()}`);
+    await dialog.accept("Accept");
+  });
+  await page.getByRole("button", { name: "DELETE PRODUCT" }).click();
+  await expect(
+    page.getByRole("heading", { name: "All Products List" })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: PRODUCTS[0].name })
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: PRODUCT.name })
+  ).not.toBeVisible();
 });
