@@ -181,7 +181,6 @@ describe("Profile Page", () => {
     await waitFor(() => {
       expect(axios.put).toHaveBeenCalledWith("/api/v1/auth/profile", {
         name: updatedMockUser.name,
-        email: mockUser.email,
         phone: updatedMockUser.phone,
         address: updatedMockUser.address,
         password: "newpass",
@@ -228,13 +227,93 @@ describe("Profile Page", () => {
         name: updatedMockUser.name,
         phone: updatedMockUser.phone,
         address: updatedMockUser.address,
-        email: mockUser.email,
         password: "newpass",
       });
     });
 
     // verify toast.error
     expect(toast.error).toHaveBeenCalledWith("Error updating user");
+  });
+
+  it("should display error messages when name field is empty", async () => {
+    renderWithRouter(<Profile />);
+
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
+      target: { value: updatedMockUser.phone },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
+      target: { value: updatedMockUser.address },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: "newpass" },
+    });
+
+    fireEvent.click(screen.getByText(/UPDATE/i));
+
+    expect(toast.error).toHaveBeenCalledWith("Name is required");
+    
+  })
+
+  it("should display error messages when password field is empty", async () => {
+    renderWithRouter(<Profile />);
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
+      target: { value: updatedMockUser.name },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
+      target: { value: updatedMockUser.phone },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
+      target: { value: updatedMockUser.address },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByText(/UPDATE/i));
+
+    expect(toast.error).toHaveBeenCalledWith("Password is required");
+  });
+
+  it("should display error messages when phone field is empty", async () => {
+    renderWithRouter(<Profile />);
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
+      target: { value: updatedMockUser.name },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
+      target: { value: updatedMockUser.address },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: "newpass" },
+    });
+
+    fireEvent.click(screen.getByText(/UPDATE/i));
+
+    expect(toast.error).toHaveBeenCalledWith("Phone is required");
+  });
+
+  it("should display error messages when address field is empty", async () => {
+    renderWithRouter(<Profile />);
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
+      target: { value: updatedMockUser.name },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
+      target: { value: updatedMockUser.phone },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
+      target: { value: "" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+      target: { value: "newpass" },
+    });
+
+    fireEvent.click(screen.getByText(/UPDATE/i));
+
+    expect(toast.error).toHaveBeenCalledWith("Address is required");
   });
 
   it("should log and display error message if error is thrown", async () => {
@@ -268,7 +347,6 @@ describe("Profile Page", () => {
         name: updatedMockUser.name,
         phone: updatedMockUser.phone,
         address: updatedMockUser.address,
-        email: mockUser.email,
         password: "newpass",
       });
     });
