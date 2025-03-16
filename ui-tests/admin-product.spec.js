@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-import { ADMIN_USER, CATEGORIES, PRODUCTS } from "../config/seed/seedDb";
+import { ADMIN_USER, USER, CATEGORIES, PRODUCTS } from "../config/seed/seedDb";
 
 /**
  * Test Plan:
@@ -360,4 +360,46 @@ test("should still create product with no photo", async ({ page }) => {
   await expect(
     page.getByRole("link", { name: PRODUCT.name })
   ).not.toBeVisible();
+});
+
+test("should redirect to login page if user is not signed in", async ({
+  page,
+}) => {
+  // Logout
+  await page.getByRole("button", { name: ADMIN_USER.name }).click();
+  await page.getByRole("link", { name: "Logout" }).click();
+
+  // Go to create product page
+  await page.goto("/dashboard/admin/create-product");
+
+  // Verify the redirect to login page
+  await page.waitForURL("http://localhost:3000/login", {
+    timeout: 5000,
+  });
+});
+
+test("should redirect to home page if user is not admin", async ({ page }) => {
+  // Logout
+  await page.getByRole("button", { name: ADMIN_USER.name }).click();
+  await page.getByRole("link", { name: "Logout" }).click();
+
+  // Login as user
+  await page.getByRole("link", { name: "Login" }).click();
+  await page.getByRole("textbox", { name: "Enter Your Email" }).click();
+  await page
+    .getByRole("textbox", { name: "Enter Your Email" })
+    .fill(USER.email);
+  await page.getByRole("textbox", { name: "Enter Your Password" }).click();
+  await page
+    .getByRole("textbox", { name: "Enter Your Password" })
+    .fill(USER.password);
+  await page.getByRole("button", { name: "LOGIN" }).click();
+
+  // Go to create product page
+  await page.goto("/dashboard/admin/create-product");
+
+  // Verify the redirect to home page
+  await page.waitForURL("http://localhost:3000/login", {
+    timeout: 5000,
+  });
 });
