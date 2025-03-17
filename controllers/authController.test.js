@@ -530,7 +530,7 @@ describe("Auth Controller Tests", () => {
       
           await updateProfileController(req, res);
       
-          expect(res.status).toHaveBeenCalledWith(400);
+          expect(res.status).toHaveBeenCalledWith(500);
           expect(res.send).toHaveBeenCalledWith({
             success: false,
             message: "Error While Updating Profile",
@@ -549,7 +549,7 @@ describe("Auth Controller Tests", () => {
       
           await updateProfileController(req, res);
       
-          expect(res.status).toHaveBeenCalledWith(400);
+          expect(res.status).toHaveBeenCalledWith(500);
           expect(res.send).toHaveBeenCalledWith({
             success: false,
             message: "Error While Updating Profile",
