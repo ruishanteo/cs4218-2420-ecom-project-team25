@@ -17,6 +17,9 @@ import UpdateProduct, {
   API_URLS,
   UPDATE_PRODUCT_STRINGS,
 } from "../../../pages/admin/UpdateProduct";
+import AdminRoute, {
+  API_URLS as ADMIN_ROUTE_API_URLS,
+} from "../../../components/Routes/AdminRoute";
 import { API_URLS as CATEGORY_API_URLS } from "../../../hooks/useCategory";
 import { AuthProvider } from "../../../context/auth";
 import { CartProvider } from "../../../context/cart";
@@ -77,11 +80,11 @@ function getCaseInsensitiveRegex(text) {
 }
 
 describe("UpdateProduct Integration Tests", () => {
+  const paramsSlug = "test-product";
   const mockCategories = [
     { _id: "1", name: "Category1" },
     { _id: "2", name: "Category2" },
   ];
-
   const mockProduct = {
     _id: "123",
     name: "Test Product",
@@ -91,61 +94,86 @@ describe("UpdateProduct Integration Tests", () => {
     shipping: true,
     category: mockCategories[0],
   };
-
-  const paramsSlug = "test-product";
-
+  const mockAuthData = { user: { name: "Admin User" }, token: "valid-token" };
   const MockProductsPage = () => (
     <div data-testid="mock-products-page">Products Page</div>
   );
+  const user = userEvent.setup();
 
-  const setup = async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const setAuthInLocalStorage = (authData) => {
+    localStorage.setItem("auth", JSON.stringify(authData));
+  };
+
+  const clearAuthFromLocalStorage = () => {
+    localStorage.removeItem("auth");
+  };
+
+  const setup = async (waitForProductDetails = true) => {
     render(
       <Providers>
         <MemoryRouter
           initialEntries={[`/dashboard/admin/update-product/${paramsSlug}`]}
         >
           <Routes>
-            <Route
-              path="/dashboard/admin/update-product/:slug"
-              element={<UpdateProduct />}
-            />
-            <Route
-              path="/dashboard/admin/products"
-              element={<MockProductsPage />}
-            />
+            <Route path="/dashboard" element={<AdminRoute />}>
+              <Route
+                path="admin/update-product/:slug"
+                element={<UpdateProduct />}
+              />
+              <Route path="admin/products" element={<MockProductsPage />} />
+            </Route>
           </Routes>
         </MemoryRouter>
       </Providers>
     );
 
-    await waitFor(() =>
-      expect(
-        screen.getByRole("textbox", {
-          name: getCaseInsensitiveRegex(
-            UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
-          ),
-        })
-      ).toHaveValue(mockProduct.name)
-    );
+    if (waitForProductDetails) {
+      await waitFor(() =>
+        expect(
+          screen.getByRole("textbox", {
+            name: getCaseInsensitiveRegex(
+              UPDATE_PRODUCT_STRINGS.PRODUCT_NAME_PLACEHOLDER
+            ),
+          })
+        ).toHaveValue(mockProduct.name)
+      );
+    }
   };
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+  const mockAxiosGet = ({
+    failedFetchProduct = false,
+    failAuthCheck = false,
+  } = {}) => {
     axios.get.mockImplementation((url) => {
-      if (url === CATEGORY_API_URLS.GET_CATEGORIES) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      } else if (url === `${API_URLS.GET_PRODUCT}/${paramsSlug}`) {
-        return Promise.resolve({
-          data: { success: true, product: mockProduct },
-        });
+      switch (url) {
+        case ADMIN_ROUTE_API_URLS.CHECK_ADMIN_AUTH:
+          return failAuthCheck
+            ? Promise.resolve({ data: { ok: false } })
+            : Promise.resolve({ data: { ok: true } });
+        case CATEGORY_API_URLS.GET_CATEGORIES:
+          return Promise.resolve({
+            data: { success: true, category: mockCategories },
+          });
+        case `${API_URLS.GET_PRODUCT}/${paramsSlug}`:
+          return failedFetchProduct
+            ? Promise.resolve({ data: { success: false } })
+            : Promise.resolve({
+                data: { success: true, product: mockProduct },
+              });
+        default:
+          return Promise.reject(new Error("Not Found"));
       }
-      return Promise.reject(new Error("Not Found"));
     });
-  });
+  };
 
   it("should load categories and display them in dropdown", async () => {
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
+
     await setup();
 
     const categorySelect = await screen.findByRole("combobox", {
@@ -161,8 +189,6 @@ describe("UpdateProduct Integration Tests", () => {
   });
 
   it("should update product and navigate", async () => {
-    const user = userEvent.setup();
-    axios.put.mockResolvedValueOnce({ data: { success: true } });
     const inputFormData = {
       name: "Updated Product",
       description: "Updated Description",
@@ -174,6 +200,9 @@ describe("UpdateProduct Integration Tests", () => {
       category: mockCategories[1]._id,
       shipping: "false",
     };
+    axios.put.mockResolvedValueOnce({ data: { success: true } });
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
 
     await setup();
 
@@ -298,8 +327,10 @@ describe("UpdateProduct Integration Tests", () => {
   });
 
   it("should delete product and navigate", async () => {
-    axios.delete.mockResolvedValueOnce({ data: { success: true } });
     window.prompt = jest.fn().mockReturnValue(true);
+    axios.delete.mockResolvedValueOnce({ data: { success: true } });
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
 
     await setup();
 
@@ -321,6 +352,8 @@ describe("UpdateProduct Integration Tests", () => {
 
   it("should handle failed update", async () => {
     axios.put.mockResolvedValueOnce({ data: { success: false } });
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
 
     await setup();
 
@@ -341,11 +374,10 @@ describe("UpdateProduct Integration Tests", () => {
   });
 
   it("should handle failed delete", async () => {
-    axios.get.mockResolvedValueOnce({
-      data: { product: mockProduct, success: true },
-    });
-    axios.delete.mockResolvedValueOnce({ data: { success: false } });
     window.prompt = jest.fn().mockReturnValue(true);
+    axios.delete.mockResolvedValueOnce({ data: { success: false } });
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
 
     await setup();
 
@@ -367,8 +399,10 @@ describe("UpdateProduct Integration Tests", () => {
 
   it("should not delete product if canceled", async () => {
     window.prompt = jest.fn().mockReturnValue(false);
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
 
-    setup();
+    await setup();
 
     fireEvent.click(
       screen.getByRole("button", {
@@ -383,20 +417,12 @@ describe("UpdateProduct Integration Tests", () => {
   });
 
   it("should handle failed get product", async () => {
-    axios.get.mockImplementation((url) => {
-      if (url === CATEGORY_API_URLS.GET_CATEGORIES) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      } else if (url === `${API_URLS.GET_PRODUCT}/${paramsSlug}`) {
-        return Promise.resolve({
-          data: { success: false },
-        });
-      }
-      return Promise.reject(new Error("Not Found"));
-    });
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet({ failedFetchProduct: true });
 
-    setup();
+    await act(async () => {
+      await setup(false); // Skip waiting for product details
+    });
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
@@ -404,5 +430,42 @@ describe("UpdateProduct Integration Tests", () => {
       );
     });
     expect(screen.queryByTestId("mock-products-page")).not.toBeInTheDocument();
+  });
+
+  it("should redirect to login if user is not signed in", async () => {
+    clearAuthFromLocalStorage();
+    mockAxiosGet();
+
+    await act(async () => {
+      await setup(false); // Skip waiting for product details
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", {
+          name: getCaseInsensitiveRegex(
+            UPDATE_PRODUCT_STRINGS.REDIRECTING_TO_LOGIN
+          ),
+        })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("should redirect to login if user is not admin", async () => {
+    setAuthInLocalStorage({ user: { name: "User" }, token: "valid-token" });
+    mockAxiosGet({ failAuthCheck: true }); // Simulate failed auth check
+
+    await act(async () => {
+      await setup(false); // Skip waiting for product details
+    });
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        ADMIN_ROUTE_API_URLS.CHECK_ADMIN_AUTH
+      );
+    });
+    expect(
+      screen.getByRole("heading", { name: /redirecting to you in/i })
+    ).toBeInTheDocument();
   });
 });
