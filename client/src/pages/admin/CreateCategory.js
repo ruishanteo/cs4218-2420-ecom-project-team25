@@ -42,15 +42,12 @@ const CreateCategory = () => {
       });
 
       if (!data?.success) {
-        if (data?.message === "Category Already Exists") {
-          throw new Error(CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR);
-        }
         throw new Error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
       }
 
       toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_CREATED);
     } catch (error) {
-      if (error.message === CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR) {
+      if (error?.response?.data?.message === "Category Already Exists") {
         toast.error(CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR);
       } else {
         toast.error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
@@ -69,9 +66,6 @@ const CreateCategory = () => {
       );
 
       if (!data?.success) {
-        if (data?.message === "Category Already Exists") {
-          throw new Error(CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR);
-        }
         throw new Error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
       }
 
@@ -80,7 +74,7 @@ const CreateCategory = () => {
       setUpdatedName("");
       setVisible(false);
     } catch (error) {
-      if (error.message === CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR) {
+      if (error?.response?.data?.message === "Category Already Exists") {
         toast.error(CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR);
       } else {
         toast.error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
