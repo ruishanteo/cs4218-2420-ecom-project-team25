@@ -38,13 +38,16 @@ const Products = () => {
 
   return (
     <Layout>
-      <div className="row">
+      <div className="row container-fluid mt-3 mb-3 p-3">
         <div className="col-md-3">
           <AdminMenu />
         </div>
         <div className="col-md-9 ">
-          <h1 className="text-center">All Products List</h1>
-          <div className="d-flex">
+          <h1>All Products List</h1>
+          <div
+            className="d-flex flex-wrap"
+            style={{ maxHeight: "calc(100vh - 250px)", overflowY: "auto" }}
+          >
             {products?.map((p, index) => (
               <Link
                 key={p._id}
