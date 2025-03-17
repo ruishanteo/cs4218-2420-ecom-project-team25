@@ -13,6 +13,10 @@ import { ADMIN_USER } from "../config/seed/seedDb";
  * - Verify the category has been deleted
  *
  * - Test for error messages when category is empty
+ *
+ * - Test for error messages when adding category that already exists
+ *
+ * - Test for error messages when updating category that already exists
  */
 
 const NEW_CATEGORY = "New Category";
@@ -122,6 +126,56 @@ test("should not create category if name is empty", async ({ page }) => {
     page
       .locator("div")
       .filter({ hasText: /^Something went wrong in creating category$/ })
+      .nth(2)
+  ).toBeVisible();
+});
+
+test("should not create category if name already exists", async ({ page }) => {
+  // Create category
+  await page.getByRole("textbox", { name: "Enter new category" }).click();
+  await page
+    .getByRole("textbox", { name: "Enter new category" })
+    .fill(NEW_CATEGORY);
+  await page.getByRole("button", { name: "Submit" }).click();
+  await expect(
+    page
+      .locator("div")
+      .filter({ hasText: /^Category created successfully$/ })
+      .nth(2)
+  ).toBeVisible();
+  await verifyCategoryDetails(page, { name: NEW_CATEGORY });
+
+  // Add another category of the same name
+  await page.getByRole("textbox", { name: "Enter new category" }).click();
+  await page
+    .getByRole("textbox", { name: "Enter new category" })
+    .fill(NEW_CATEGORY);
+  await page.getByRole("button", { name: "Submit" }).click();
+  await expect(
+    page
+      .locator("div")
+      .filter({ hasText: /^Category already exists$/ })
+      .nth(2)
+  ).toBeVisible();
+});
+
+test("should not update category if name already exists", async ({ page }) => {
+  // Edit category to have the same name
+  await page
+    .getByRole("button", { name: "update New Category category" })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("textbox", { name: "Enter new category" })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByRole("button", { name: "Submit" })
+    .click();
+  await expect(
+    page
+      .locator("div")
+      .filter({ hasText: /^Category already exists$/ })
       .nth(2)
   ).toBeVisible();
 });
