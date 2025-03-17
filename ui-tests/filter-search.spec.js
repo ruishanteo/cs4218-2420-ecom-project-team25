@@ -1,8 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { describe } from 'node:test';
 import { USER } from '../config/seed/seedDb';
-
-test.beforeEach(async () => {});
 
 test.afterEach(async () => {});
 
