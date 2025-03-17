@@ -9,6 +9,9 @@ import AdminOrders, {
   ADMIN_ORDERS_STRINGS,
   API_URLS,
 } from "../../../pages/admin/AdminOrders";
+import AdminRoute, {
+  API_URLS as ADMIN_ROUTE_API_URLS,
+} from "../../../components/Routes/AdminRoute";
 import { API_URLS as CATEGORY_API_URLS } from "../../../hooks/useCategory";
 import { AuthProvider } from "../../../context/auth";
 import { CartProvider } from "../../../context/cart";
@@ -105,7 +108,9 @@ describe("AdminOrders Integration Tests", () => {
       <Providers>
         <MemoryRouter initialEntries={["/dashboard/admin/orders"]}>
           <Routes>
-            <Route path="/dashboard/admin/orders" element={<AdminOrders />} />
+            <Route path="/dashboard" element={<AdminRoute />}>
+              <Route path="admin/orders" element={<AdminOrders />} />
+            </Route>
           </Routes>
         </MemoryRouter>
       </Providers>
@@ -115,24 +120,27 @@ describe("AdminOrders Integration Tests", () => {
   const mockAxiosGet = ({
     failOrdersFetch = false,
     unsuccessfulOrdersFetch = false,
+    failAuthCheck = false,
   } = {}) => {
     axios.get.mockImplementation((url) => {
-      if (url === CATEGORY_API_URLS.GET_CATEGORIES) {
-        return Promise.resolve({
-          data: { success: true, category: mockCategories },
-        });
-      } else if (url === API_URLS.GET_ALL_ORDERS) {
-        if (failOrdersFetch) {
-          return Promise.reject(new Error("Failed"));
-        }
-
-        if (unsuccessfulOrdersFetch) {
-          return Promise.resolve({ data: { success: false } });
-        }
-
-        return Promise.resolve({ data: mockOrders });
+      switch (url) {
+        case ADMIN_ROUTE_API_URLS.CHECK_ADMIN_AUTH:
+          return failAuthCheck
+            ? Promise.resolve({ data: { ok: false } })
+            : Promise.resolve({ data: { ok: true } });
+        case CATEGORY_API_URLS.GET_CATEGORIES:
+          return Promise.resolve({
+            data: { success: true, category: mockCategories },
+          });
+        case API_URLS.GET_ALL_ORDERS:
+          return failOrdersFetch
+            ? Promise.reject(new Error("Failed"))
+            : unsuccessfulOrdersFetch
+            ? Promise.resolve({ data: { success: false } })
+            : Promise.resolve({ data: mockOrders });
+        default:
+          return Promise.reject(new Error("Not Found"));
       }
-      return Promise.reject(new Error("Not Found"));
     });
   };
 
@@ -272,5 +280,34 @@ describe("AdminOrders Integration Tests", () => {
       `${API_URLS.UPDATE_ORDER_STATUS}/${mockOrders[0]._id}`,
       { status: "Shipped" }
     );
+  });
+
+  it("should redirect to login if user is not signed in", async () => {
+    clearAuthFromLocalStorage();
+    mockAxiosGet();
+
+    setup();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: /redirecting to you in/i })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("should redirect to login if user is not admin", async () => {
+    setAuthInLocalStorage({ user: { name: "User" }, token: "valid-token" });
+    mockAxiosGet({ failAuthCheck: true }); // Simulate failed auth check
+
+    setup();
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        ADMIN_ROUTE_API_URLS.CHECK_ADMIN_AUTH
+      );
+    });
+    expect(
+      screen.getByRole("heading", { name: /redirecting to you in/i })
+    ).toBeInTheDocument();
   });
 });
