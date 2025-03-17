@@ -170,7 +170,7 @@ describe("Order API Integration Tests", () => {
       .set("Authorization", adminToken);
 
     expect(res.statusCode).toBe(500);
-    expect(res.body.message).toBe("Error While Geting Orders");
+    expect(res.body.message).toBe("Error While Getting Orders");
 
     orderModel.find.mockRestore();
   });
