@@ -8,7 +8,7 @@ import {
   within,
 } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 import CreateCategory, {
   API_URLS,
@@ -92,9 +92,9 @@ describe("CreateCategory Component", () => {
   });
 
   it("should display duplicate category error message when category already exists", async () => {
-    axios.post.mockResolvedValueOnce({
-      data: { success: false, message: "Category Already Exists" },
-    });
+    const error = new AxiosError();
+    error.response = { data: { message: "Category Already Exists" } };
+    axios.post.mockRejectedValueOnce(error);
 
     render(<CreateCategory />);
 
@@ -238,9 +238,9 @@ describe("CreateCategory Component", () => {
   });
 
   it("should display duplicate category error message when category is updated to an existing one", async () => {
-    axios.put.mockResolvedValueOnce({
-      data: { success: false, message: "Category Already Exists" },
-    });
+    const error = new AxiosError();
+    error.response = { data: { message: "Category Already Exists" } };
+    axios.put.mockRejectedValueOnce(error);
 
     render(<CreateCategory />);
 
