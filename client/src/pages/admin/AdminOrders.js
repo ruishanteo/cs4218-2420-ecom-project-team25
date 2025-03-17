@@ -127,8 +127,8 @@ const AdminOrders = () => {
                           }?id=${Date.now()}`}
                           className="card-img-top"
                           alt={p.name}
-                          width="100px"
-                          height={"100px"}
+                          height="200px"
+                          style={{ width: "auto" }}
                         />
                       </div>
                       <div className="col-md-8">
