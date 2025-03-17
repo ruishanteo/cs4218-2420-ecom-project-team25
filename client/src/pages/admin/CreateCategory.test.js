@@ -8,7 +8,7 @@ import {
   within,
 } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 import CreateCategory, {
   API_URLS,
@@ -88,6 +88,27 @@ describe("CreateCategory Component", () => {
     expect(axios.post).toHaveBeenCalledWith(API_URLS.CREATE_CATEGORY, {
       name: newCategory,
     });
+    expect(mockRefreshCategories).toHaveBeenCalled();
+  });
+
+  it("should display duplicate category error message when category already exists", async () => {
+    const error = new AxiosError();
+    error.response = { data: { message: "Category Already Exists" } };
+    axios.post.mockRejectedValueOnce(error);
+
+    render(<CreateCategory />);
+
+    fireEvent.click(screen.getByRole("button", { name: /submit/i }));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR
+      )
+    );
+    expect(axios.post).toHaveBeenCalledWith(
+      API_URLS.CREATE_CATEGORY,
+      expect.any(Object)
+    );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });
 
@@ -212,6 +233,31 @@ describe("CreateCategory Component", () => {
     expect(axios.put).toHaveBeenCalledWith(
       `${API_URLS.UPDATE_CATEGORY}/${mockCategories[0]._id}`,
       { name: updatedCategory }
+    );
+    expect(mockRefreshCategories).toHaveBeenCalled();
+  });
+
+  it("should display duplicate category error message when category is updated to an existing one", async () => {
+    const error = new AxiosError();
+    error.response = { data: { message: "Category Already Exists" } };
+    axios.put.mockRejectedValueOnce(error);
+
+    render(<CreateCategory />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /update electronics category/i })
+    );
+    const modal = screen.getByRole("dialog");
+    fireEvent.click(within(modal).getByRole("button", { name: /submit/i }));
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR
+      )
+    );
+    expect(axios.put).toHaveBeenCalledWith(
+      `${API_URLS.UPDATE_CATEGORY}/${mockCategories[0]._id}`,
+      expect.any(Object)
     );
     expect(mockRefreshCategories).toHaveBeenCalled();
   });

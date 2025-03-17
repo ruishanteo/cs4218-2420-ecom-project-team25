@@ -5,6 +5,10 @@ import { Outlet } from 'react-router-dom';
 import axios from 'axios';
 import Spinner from '../Spinner';
 
+export const API_URLS = {
+  CHECK_ADMIN_AUTH: "/api/v1/auth/admin-auth",
+};
+
 export default function AdminRoute() {
   const [ok, setOk] = useState(false);
   const [auth, setAuth] = useAuth();
@@ -12,7 +16,7 @@ export default function AdminRoute() {
   useEffect(() => {
     const authCheck = async () => {
       try {
-        const res = await axios.get('/api/v1/auth/admin-auth');
+        const res = await axios.get(API_URLS.CHECK_ADMIN_AUTH);
         if (res.data.ok) {
           setOk(true);
         } else {
