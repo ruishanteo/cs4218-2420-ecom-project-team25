@@ -13,6 +13,7 @@ export const CREATE_CATEGORY_STRINGS = {
 
   CREATE_CATEGORY_ERROR: "Something went wrong in creating category",
   UPDATE_CATEGORY_ERROR: "Something went wrong in updating category",
+  DUPLICATE_CATEGORY_ERROR: "Category already exists",
   DELETE_CATEGORY_ERROR: "Something went wrong in deleting category",
 
   CATEGORY_CREATED: "Category created successfully",
@@ -41,12 +42,19 @@ const CreateCategory = () => {
       });
 
       if (!data?.success) {
+        if (data?.message === "Category Already Exists") {
+          throw new Error(CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR);
+        }
         throw new Error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
       }
 
       toast.success(CREATE_CATEGORY_STRINGS.CATEGORY_CREATED);
     } catch (error) {
-      toast.error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
+      if (error.message === CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR) {
+        toast.error(CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR);
+      } else {
+        toast.error(CREATE_CATEGORY_STRINGS.CREATE_CATEGORY_ERROR);
+      }
       console.log(error);
     }
     refreshCategories();
@@ -61,6 +69,9 @@ const CreateCategory = () => {
       );
 
       if (!data?.success) {
+        if (data?.message === "Category Already Exists") {
+          throw new Error(CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR);
+        }
         throw new Error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
       }
 
@@ -69,7 +80,11 @@ const CreateCategory = () => {
       setUpdatedName("");
       setVisible(false);
     } catch (error) {
-      toast.error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
+      if (error.message === CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR) {
+        toast.error(CREATE_CATEGORY_STRINGS.DUPLICATE_CATEGORY_ERROR);
+      } else {
+        toast.error(CREATE_CATEGORY_STRINGS.UPDATE_CATEGORY_ERROR);
+      }
     }
     refreshCategories();
   };
