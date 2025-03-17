@@ -8,8 +8,8 @@ export const createCategoryController = async (req, res) => {
     }
     const existingCategory = await categoryModel.findOne({ name });
     if (existingCategory) {
-      return res.status(200).send({
-        success: true,
+      return res.status(500).send({
+        success: false,
         message: "Category Already Exists",
       });
     }
@@ -37,6 +37,15 @@ export const updateCategoryController = async (req, res) => {
   try {
     const { name } = req.body;
     const { id } = req.params;
+
+    const existingCategory = await categoryModel.findOne({ name });
+    if (existingCategory) {
+      return res.status(500).send({
+        success: false,
+        message: "Category Already Exists",
+      });
+    }
+
     const category = await categoryModel.findByIdAndUpdate(
       id,
       { name, slug: slugify(name) },
@@ -87,7 +96,7 @@ export const singleCategoryController = async (req, res) => {
         message: "Category not found",
       });
     }
-    
+
     res.status(200).send({
       success: true,
       message: "Get Single Category Successfully",

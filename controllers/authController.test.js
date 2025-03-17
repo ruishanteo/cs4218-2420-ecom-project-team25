@@ -443,7 +443,7 @@ describe("Auth Controller Tests", () => {
           await updateProfileController(req, res);
       
           expect(res.json).toHaveBeenCalledWith({
-            error: "Password is required and 6 character long",
+            error: "Password should be minimum 6 characters long",
           });
         });
       

@@ -26,10 +26,10 @@ const Profile = () => {
   // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isValid()) return;
     try {
       const { data } = await axios.put("/api/v1/auth/profile", {
         name,
-        email,
         password,
         phone,
         address,
@@ -37,7 +37,7 @@ const Profile = () => {
       if (data?.error) {
         toast.error(data?.error);
       } else {
-        setAuth({ ...auth, user: data?.updatedUser });
+        setAuth({ ...auth, user: data?.updatedUser, email: email });
         let ls = localStorage.getItem("auth");
         ls = JSON.parse(ls);
         ls.user = data.updatedUser;
@@ -49,9 +49,30 @@ const Profile = () => {
       toast.error("Something went wrong");
     }
   };
+
+  const isValid = () => {
+    if (!name) {
+      toast.error("Name is required");
+      return false;
+    }
+    if (!password) {
+      toast.error("Password is required");
+      return false;
+    }
+    if (!phone) {
+      toast.error("Phone is required");
+      return false;
+    }
+    if (!address) {
+      toast.error("Address is required");
+      return false;
+    }
+    return true;
+  }
+
   return (
     <Layout title={"Your Profile"}>
-      <div className="container-fluid m-3 p-3">
+      <div className="container-fluid mt-3 mb-3 p-3">
         <div className="row">
           <div className="col-md-3">
             <UserMenu />

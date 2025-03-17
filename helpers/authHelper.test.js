@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import { hashPassword, comparePassword } from "./authHelper";
-import { describe } from "node:test";
 jest.mock("bcrypt", () => ({
   hash: jest.fn(),
   compare: jest.fn(),
