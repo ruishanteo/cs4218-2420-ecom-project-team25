@@ -6,47 +6,66 @@ import "@testing-library/jest-dom";
 
 import AdminDashboard from "../../../pages/admin/AdminDashboard";
 import AdminRoute from "../../../components/Routes/AdminRoute";
+import { AuthProvider } from "../../../context/auth";
 import { CartProvider } from "../../../context/cart";
 import { SearchProvider } from "../../../context/search";
-import { useAuth } from "../../../context/auth";
 
 jest.mock("axios");
-jest.mock("../../../context/auth", () => ({
-  useAuth: jest.fn(),
-}));
 
 const Providers = ({ children }) => {
   return (
-    <CartProvider>
-      <SearchProvider>{children}</SearchProvider>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <SearchProvider>{children}</SearchProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 };
 
 describe("AdminDashboard Integration Tests", () => {
-  const mockAdmin = {
+  const mockAuthData = {
     user: {
       name: "Admin User",
       email: "admin@example.com",
       phone: "9876543210",
     },
+    token: "valid-token",
   };
 
-  const setup = (authValue = mockAdmin) => {
-    useAuth.mockReturnValue([authValue, jest.fn()]);
+  const setAuthInLocalStorage = (authData) => {
+    localStorage.setItem("auth", JSON.stringify(authData));
+  };
 
+  const clearAuthFromLocalStorage = () => {
+    localStorage.removeItem("auth");
+  };
+
+  const setup = () => {
     return render(
       <Providers>
         <MemoryRouter initialEntries={["/dashboard/admin"]}>
           <Routes>
-            <Route path="/dashboard/admin" element={<AdminDashboard />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/dashboard/admin" element={<AdminDashboard />} />
+            </Route>
           </Routes>
         </MemoryRouter>
       </Providers>
     );
   };
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   it("should display admin details when authenticated", async () => {
+    axios.get.mockResolvedValue({ data: { ok: true } });
+    setAuthInLocalStorage(mockAuthData);
     setup();
 
     await waitFor(() => {
@@ -61,6 +80,8 @@ describe("AdminDashboard Integration Tests", () => {
   });
 
   it("should render AdminMenu component", async () => {
+    axios.get.mockResolvedValue({ data: { ok: true } });
+    setAuthInLocalStorage(mockAuthData);
     setup();
 
     await waitFor(() => {
@@ -70,19 +91,8 @@ describe("AdminDashboard Integration Tests", () => {
   });
 
   it("should not display admin details when not authenticated", async () => {
-    useAuth.mockReturnValue([{ user: null, token: "" }, jest.fn()]);
-
-    axios.get.mockResolvedValue({ data: { ok: false } });
-
-    render(
-      <MemoryRouter initialEntries={["/dashboard/admin"]}>
-        <Routes>
-          <Route element={<AdminRoute />}>
-            <Route path="/dashboard/admin" element={<AdminDashboard />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    );
+    clearAuthFromLocalStorage();
+    setup();
 
     expect(screen.queryByText("Admin Name :")).not.toBeInTheDocument();
     expect(screen.queryByText("Admin Email :")).not.toBeInTheDocument();
@@ -90,6 +100,8 @@ describe("AdminDashboard Integration Tests", () => {
   });
 
   it("should render Layout component", async () => {
+    axios.get.mockResolvedValue({ data: { ok: true } });
+    setAuthInLocalStorage(mockAuthData);
     setup();
 
     await waitFor(() => {
@@ -98,14 +110,17 @@ describe("AdminDashboard Integration Tests", () => {
   });
 
   it("should display correct data when different mock admin data is passed", async () => {
+    axios.get.mockResolvedValue({ data: { ok: true } });
     const customAdmin = {
       user: {
         name: "Custom Admin",
         email: "customadmin@example.com",
         phone: "1234567890",
       },
+      token: "valid-token",
     };
-    setup(customAdmin);
+    setAuthInLocalStorage(customAdmin);
+    setup();
 
     await waitFor(() => {
       expect(screen.getByText("Admin Name : Custom Admin")).toBeInTheDocument();
