@@ -1,7 +1,7 @@
 import React from "react";
 import axios from "axios";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 import "@testing-library/jest-dom";
 
 import SearchInput from "../../../components/Form/SearchInput";
@@ -10,14 +10,6 @@ import { CartProvider } from "../../../context/cart";
 import { SearchProvider, useSearch } from "../../../context/search";
 
 jest.mock("axios");
-jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
-  useNavigate: jest.fn(),
-}));
-jest.mock("../../../context/search", () => ({
-  ...jest.requireActual("../../../context/search"),
-  useSearch: jest.fn(),
-}));
 
 const Providers = ({ children }) => {
   return (
@@ -29,17 +21,39 @@ const Providers = ({ children }) => {
   );
 };
 
-describe("SearchInput Component Integration Tests", () => {
-  let mockNavigate;
-  let mockSetValues;
-  let mockValues;
+const SearchConsumer = () => {
+  const [values] = useSearch();
+  return (
+    <div data-testid="context-value" hidden={true}>
+      {values.keyword}
+    </div>
+  );
+};
 
+const SearchPage = () => {
+  return (
+    <div data-testid="search-page">
+      <SearchConsumer />
+    </div>
+  );
+};
+
+describe("SearchInput Component Integration Tests", () => {
   const setup = () => {
     return render(
       <MemoryRouter>
         <Providers>
           <Routes>
-            <Route path="/" element={<SearchInput />} />
+            <Route
+              path="/"
+              element={
+                <>
+                  <SearchInput />
+                  <SearchConsumer />
+                </>
+              }
+            />
+            <Route path="/search" element={<SearchPage />} />
           </Routes>
         </Providers>
       </MemoryRouter>
@@ -48,14 +62,6 @@ describe("SearchInput Component Integration Tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockNavigate = jest.fn();
-
-    mockSetValues = jest.fn((newValues) => {
-      mockValues = { ...mockValues, ...newValues };
-    });
-    mockValues = { keyword: "", results: [] }; // Initialize mockValues
-    useNavigate.mockReturnValue(mockNavigate);
-    useSearch.mockReturnValue([mockValues, mockSetValues]);
   });
 
   it("should render the search input and button", () => {
@@ -65,20 +71,17 @@ describe("SearchInput Component Integration Tests", () => {
     expect(screen.getByRole("button", { name: /search/i })).toBeInTheDocument();
   });
 
-  it("should allow the user to type in the search input", () => {
+  it("should allow the user to type in the search input", async () => {
     setup();
 
-    const input = screen.getByPlaceholderText("Search");
+    const input = screen.getByRole("searchbox");
 
-    // Simulate typing in the input
     fireEvent.change(input, { target: { value: "laptop" } });
 
-    // Check if the input value is updated
-    expect(mockSetValues).toHaveBeenCalledWith({
-      keyword: "laptop",
-      results: [],
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("laptop")).toBeInTheDocument();
     });
-    expect(input.value).toBe("laptop");
+    expect(screen.getByTestId("context-value")).toHaveTextContent("laptop");
   });
 
   it("should call axios.get and navigate on form submission", async () => {
@@ -87,20 +90,18 @@ describe("SearchInput Component Integration Tests", () => {
 
     setup();
 
-    const input = screen.getByPlaceholderText("Search");
+    const input = screen.getByRole("searchbox");
     const button = screen.getByRole("button", { name: /search/i });
 
     fireEvent.change(input, { target: { value: "laptop" } });
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith("/api/v1/product/search/laptop");
-      expect(mockSetValues).toHaveBeenCalledWith({
-        keyword: "laptop",
-        results: mockData,
-      });
-      expect(mockNavigate).toHaveBeenCalledWith("/search");
+      expect(screen.getByTestId("search-page")).toBeInTheDocument();
     });
+
+    expect(screen.getByTestId("context-value")).toHaveTextContent("laptop");
+    expect(axios.get).toHaveBeenCalledWith("/api/v1/product/search/laptop");
   });
 
   it("should handle API errors gracefully", async () => {
@@ -108,7 +109,7 @@ describe("SearchInput Component Integration Tests", () => {
 
     setup();
 
-    const input = screen.getByPlaceholderText("Search");
+    const input = screen.getByRole("searchbox");
     const button = screen.getByRole("button", { name: /search/i });
 
     fireEvent.change(input, { target: { value: "laptop" } });
@@ -116,8 +117,8 @@ describe("SearchInput Component Integration Tests", () => {
 
     await waitFor(() => {
       expect(axios.get).toHaveBeenCalledWith("/api/v1/product/search/laptop");
-      expect(mockSetValues).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
+    expect(screen.getByTestId("context-value")).toHaveTextContent("laptop");
+    expect(screen.queryByTestId("search-page")).not.toBeInTheDocument();
   });
 });
