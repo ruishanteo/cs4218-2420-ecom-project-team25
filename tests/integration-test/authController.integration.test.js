@@ -101,6 +101,21 @@ describe("Auth Controller Integration Tests", () => {
     expect(res.body.updatedUser.name).toBe("Updated User");
   });
 
+  test("PUT /api/v1/auth/profile should update user's name only successfully", async () => {
+    const res = await request(app)
+      .put("/api/v1/auth/profile")
+      .set("Authorization", userToken)
+      .send({
+        name: "Updated User",
+      });
+    expect(res.status).toBe(200);
+    expect(res.body.message).toBe("Profile Updated Successfully");
+    expect(res.body.updatedUser.name).toBe("Updated User"); // only name is updated
+    expect(res.body.updatedUser.email).toBe(user.email);
+    expect(res.body.updatedUser.phone).toBe(user.phone);
+    expect(res.body.updatedUser.address).toBe(user.address);
+  });
+
   test("PUT /api/v1/auth/profile should return 401 when user is not signed in", async () => {
     const res = await request(app).put("/api/v1/auth/profile").send({
       name: "Updated User",
