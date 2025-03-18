@@ -93,9 +93,15 @@ describe("Profile Integration Tests", () => {
     setAuthInLocalStorage({ user: mockUser, token: "valid-token" });
     setup();
 
-    expect(
-      screen.getByRole("button", { bame: mockUser.name })
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(document.title).toBe("Your Profile");
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: "John Doe" })
+      ).toBeInTheDocument();
+    });
 
     expect(screen.getByPlaceholderText("Enter Your Name").value).toEqual(
       mockUser.name
