@@ -26,7 +26,6 @@ const Profile = () => {
   // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isValid()) return;
     try {
       const { data } = await axios.put("/api/v1/auth/profile", {
         name,
@@ -49,26 +48,6 @@ const Profile = () => {
       toast.error("Something went wrong");
     }
   };
-
-  const isValid = () => {
-    if (!name) {
-      toast.error("Name is required");
-      return false;
-    }
-    if (!password) {
-      toast.error("Password is required");
-      return false;
-    }
-    if (!phone) {
-      toast.error("Phone is required");
-      return false;
-    }
-    if (!address) {
-      toast.error("Address is required");
-      return false;
-    }
-    return true;
-  }
 
   return (
     <Layout title={"Your Profile"}>
