@@ -11,6 +11,11 @@ import axios from "axios";
 
 jest.mock("axios");
 
+jest.mock("../../../hooks/useCategory", () => ({
+  __esModule: true,
+  default: jest.fn(() => [[], jest.fn()]),
+}));
+
 jest.mock("../../../context/auth", () => ({
   useAuth: jest.fn(),
 }));
@@ -82,24 +87,16 @@ describe("Orders Integration Tests", () => {
     axios.get.mockResolvedValue({ data: mockOrders });
   });
 
-  it("should render the right layout component", async () => {
+  it("should render the right layout", async () => {
     setup();
     await waitFor(() => {
       expect(document.title).toBe("Your Orders");
     });
-  });
-
-  it("should render user's name in dropdown", async () => {
-    setup();
     await waitFor(() => {
       expect(
         screen.getByRole("button", { name: "John Doe" })
       ).toBeInTheDocument();
     });
-  });
-
-  it("should render user menu", async () => {
-    setup();
     await waitFor(() => {
       expect(screen.getByText("Profile")).toBeInTheDocument();
     });
@@ -108,7 +105,7 @@ describe("Orders Integration Tests", () => {
     });
   });
 
-  it("should fetch and display orders from API", async () => {
+  it("should fetch and display orders if user is authenticated", async () => {
     setup();
 
     await waitFor(() => {
@@ -128,7 +125,16 @@ describe("Orders Integration Tests", () => {
     });
   });
 
-  it("should handle API errors gracefully", async () => {
+  it("should not fetch and display orders if user is not authenticated", async () => {
+    useAuth.mockReturnValue([null, jest.fn()]);
+
+    setup();
+    expect(axios.get).not.toHaveBeenCalled();
+    expect(screen.queryByText("Product 1")).not.toBeInTheDocument();
+    expect(screen.queryByText("Product 2")).not.toBeInTheDocument();
+  });
+
+  it("should handle failed fetch of orders", async () => {
     axios.get.mockRejectedValue(new Error("Internal Server Error"));
     setup();
 
@@ -136,7 +142,10 @@ describe("Orders Integration Tests", () => {
       expect(screen.getByText("All Orders")).toBeInTheDocument();
     });
     await waitFor(() => {
-      expect(screen.queryByText("Processing")).not.toBeInTheDocument();
+      expect(screen.queryByText("Product 1")).not.toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(screen.queryByText("Product 2")).not.toBeInTheDocument();
     });
   });
 });
