@@ -5,6 +5,8 @@ import { MemoryRouter, Routes, Route, useNavigate } from "react-router-dom";
 import "@testing-library/jest-dom";
 
 import SearchInput from "../../../components/Form/SearchInput";
+import { AuthProvider } from "../../../context/auth";
+import { CartProvider } from "../../../context/cart";
 import { SearchProvider, useSearch } from "../../../context/search";
 
 jest.mock("axios");
@@ -13,11 +15,18 @@ jest.mock("react-router-dom", () => ({
   useNavigate: jest.fn(),
 }));
 jest.mock("../../../context/search", () => ({
+  ...jest.requireActual("../../../context/search"),
   useSearch: jest.fn(),
 }));
 
 const Providers = ({ children }) => {
-  return <SearchProvider>{children}</SearchProvider>;
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <SearchProvider>{children}</SearchProvider>;
+      </CartProvider>
+    </AuthProvider>
+  );
 };
 
 describe("SearchInput Component Integration Tests", () => {
@@ -40,10 +49,11 @@ describe("SearchInput Component Integration Tests", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockNavigate = jest.fn();
+
     mockSetValues = jest.fn((newValues) => {
       mockValues = { ...mockValues, ...newValues };
     });
-    mockValues = { keyword: "", results: [] };
+    mockValues = { keyword: "", results: [] }; // Initialize mockValues
     useNavigate.mockReturnValue(mockNavigate);
     useSearch.mockReturnValue([mockValues, mockSetValues]);
   });
