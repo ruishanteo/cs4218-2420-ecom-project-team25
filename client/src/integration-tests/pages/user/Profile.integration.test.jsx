@@ -1,10 +1,11 @@
 import "@testing-library/jest-dom";
 import axios from "axios";
-import { useAuth } from "../../../context/auth";
 import { CartProvider } from "../../../context/cart";
 import { SearchProvider } from "../../../context/search";
 import React from "react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "../../../context/auth";
+import PrivateRoute from "../../../components/Routes/Private";
 import {
   render,
   waitFor,
@@ -16,23 +17,9 @@ import Profile from "../../../pages/user/Profile";
 import userEvent from "@testing-library/user-event";
 import toast from "react-hot-toast";
 
-// integration tests:
-// - should perform actions a user would do. For example: to change the state of a component, a click event would be fired.
-// - should be kept minimal
-// - always test behaviour and not implementation
-
 jest.mock("axios");
 jest.spyOn(toast, "success");
 jest.spyOn(toast, "error");
-
-jest.mock("../../../hooks/useCategory", () => ({
-  __esModule: true,
-  default: jest.fn(() => [[], jest.fn()]),
-}));
-
-jest.mock("../../../context/auth", () => ({
-  useAuth: jest.fn(),
-}));
 
 Object.defineProperty(window, "matchMedia", {
   value: jest.fn(() => {
@@ -46,9 +33,11 @@ Object.defineProperty(window, "matchMedia", {
 
 const Providers = ({ children }) => {
   return (
-    <CartProvider>
-      <SearchProvider>{children}</SearchProvider>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <SearchProvider>{children}</SearchProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 };
 
@@ -65,9 +54,12 @@ describe("Profile Integration Tests", () => {
   const setup = () => {
     return render(
       <Providers>
-        <MemoryRouter initialEntries={["/user/profile"]}>
+        <MemoryRouter initialEntries={["/dashboard/user/profile"]}>
           <Routes>
-            <Route path="/user/profile" element={<Profile />} />
+            {/* integrate with private route as it is its parent */}
+            <Route path="/dashboard" element={<PrivateRoute />}>
+              <Route path="user/profile" element={<Profile />} />
+            </Route>
           </Routes>
         </MemoryRouter>
       </Providers>
@@ -80,17 +72,25 @@ describe("Profile Integration Tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    setAuthInLocalStorage({ user: mockUser, token: "valid-token" });
 
-    useAuth.mockReturnValue([
-      {
-        user: mockUser,
-      },
-      jest.fn(),
-    ]);
+    axios.get.mockImplementation((url) => {
+      // mock user-auth api to return ok for privateroute
+      if (url === "/api/v1/auth/user-auth") {
+        return Promise.resolve({ data: { ok: true } });
+      }
+    });
+
+    axios.put.mockImplementation((url) => {
+      if (url === "/api/v1/auth/profile") {
+        return Promise.resolve({
+          data: { error: null, updatedUser: mockUser },
+        });
+      }
+    });
   });
 
   it("should display correct user details", async () => {
-    setAuthInLocalStorage({ user: mockUser, token: "valid-token" });
     setup();
 
     await waitFor(() => {
@@ -103,9 +103,13 @@ describe("Profile Integration Tests", () => {
       ).toBeInTheDocument();
     });
 
-    expect(screen.getByPlaceholderText("Enter Your Name").value).toEqual(
-      mockUser.name
-    );
+    // wait for the form to be populated
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("Enter Your Name").value).toBe(
+        mockUser.name
+      );
+    });
+
     expect(screen.getByPlaceholderText("Enter Your Email").value).toEqual(
       mockUser.email
     );
@@ -117,21 +121,27 @@ describe("Profile Integration Tests", () => {
     );
   });
 
-  it("should submit form successfully when user updates profile", async () => {
-    setAuthInLocalStorage({ user: mockUser, token: "valid-token" });
+  it("should submit form successfully and update form when user updates profile", async () => {
     const updatedUser = {
       name: "John Doeee",
       email: "john@gmail.com",
       address: "NTU, Singapore",
       phone: "123456789100",
     };
-    axios.put.mockResolvedValue({ data: { error: null, updatedUser } });
-
     setup();
+
+    // wait for form to appear
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText("Enter Your Name")
+      ).toBeInTheDocument();
+    });
 
     // simulate user typing in the input fields
     // must clear the input field before typing
     await act(async () => {
+      await user.click(screen.getByPlaceholderText("Enter Your Name"));
+
       await user.clear(screen.getByPlaceholderText("Enter Your Name"));
       await user.type(
         screen.getByPlaceholderText("Enter Your Name"),
@@ -142,11 +152,13 @@ describe("Profile Integration Tests", () => {
         screen.getByPlaceholderText("Enter Your Password"),
         "newpassword"
       );
+
       await user.clear(screen.getByPlaceholderText("Enter Your Phone"));
       await user.type(
         screen.getByPlaceholderText("Enter Your Phone"),
         updatedUser.phone
       );
+
       await user.clear(screen.getByPlaceholderText("Enter Your Address"));
       await user.type(
         screen.getByPlaceholderText("Enter Your Address"),
@@ -181,63 +193,84 @@ describe("Profile Integration Tests", () => {
     );
   });
 
-  it("should show error on api error", async () => {
-    setAuthInLocalStorage({ user: mockUser, token: "valid-token" });
-
-    axios.put.mockResolvedValueOnce({
-      data: { error: "API error", updatedUser: null },
+  it("should handle error in update field", async () => {
+    // simulate error field in json response
+    axios.put.mockImplementation(() => {
+      return Promise.resolve({
+        data: { error: "Password should be minimum 6 characters long" },
+      });
     });
 
     setup();
 
-    // simulate user typing in the input fields
-    // must clear the input field before typing
+    // wait for form to appear
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText("Enter Your Password")
+      ).toBeInTheDocument();
+    });
+
     await act(async () => {
-      await user.clear(screen.getByPlaceholderText("Enter Your Name"));
+      await user.click(screen.getByPlaceholderText("Enter Your Password"));
+
       await user.type(
-        screen.getByPlaceholderText("Enter Your Name"),
-        "John Doeee"
+        screen.getByPlaceholderText("Enter Your Password"),
+        "pass"
       );
     });
 
-    // fire event submmision of button
     fireEvent.click(screen.getByRole("button", { name: /UPDATE/i }));
 
     await waitFor(() => {
-      expect(axios.put).toHaveBeenCalled();
-    });
-
-    await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("API error");
+      expect(toast.error).toHaveBeenCalledWith(
+        "Password should be minimum 6 characters long"
+      );
     });
   });
 
-  it("should show error on server error", async () => {
-    setAuthInLocalStorage({ user: mockUser, token: "valid-token" });
-    // axios put throw error
-    axios.put.mockRejectedValueOnce(new Error("Server error"));
+  it("should handle error gracefully when error is thrown", async () => {
+    axios.put.mockImplementation(() => {
+      return Promise.reject(new Error("Error updating profile"));
+    });
 
     setup();
 
-    // simulate user typing in the input fields
-    // must clear the input field before typing
+    // wait for form to appear
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText("Enter Your Password")
+      ).toBeInTheDocument();
+    });
+
     await act(async () => {
-      await user.clear(screen.getByPlaceholderText("Enter Your Name"));
+      await user.click(screen.getByPlaceholderText("Enter Your Password"));
+
       await user.type(
-        screen.getByPlaceholderText("Enter Your Name"),
-        "John Doeee"
+        screen.getByPlaceholderText("Enter Your Password"),
+        "pass"
       );
     });
 
-    // fire event submmision of button
     fireEvent.click(screen.getByRole("button", { name: /UPDATE/i }));
 
     await waitFor(() => {
-      expect(axios.put).toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+    });
+  });
+
+  it("should redirect user to login page if user is not signed in", async () => {
+    axios.get.mockImplementation((url) => {
+      if (url === "/api/v1/auth/user-auth") {
+        return Promise.resolve({ data: { ok: false } }); // simulate user not signed in in privateroute
+      }
     });
 
+    setup();
+
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+      expect(
+        screen.getByRole("heading", { name: /redirecting to you in/i })
+      ).toBeInTheDocument();
     });
   });
 });
