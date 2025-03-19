@@ -11,6 +11,8 @@ import {
 
 jest.mock("../../config/db.js", () => jest.fn());
 
+// focus is on the integration of the auth helper functions with the relevant controllers
+
 describe("Auth Helper Integration Tests", () => {
   let mongoServer;
   let testUser;
