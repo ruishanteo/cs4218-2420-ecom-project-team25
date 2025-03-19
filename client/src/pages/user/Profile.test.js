@@ -201,9 +201,9 @@ describe("Profile Page", () => {
   it("should display error message on update failure", async () => {
     // covers line 39
 
-    // mock axios return data.error
-    axios.put.mockResolvedValueOnce({
-      data: { error: "Error updating user" },
+    // mock axios
+    axios.put.mockRejectedValueOnce({
+      response: { data: { error: "Error updating user" } },
     });
 
     renderWithRouter(<Profile />);
