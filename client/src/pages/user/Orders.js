@@ -4,6 +4,7 @@ import Layout from "./../../components/Layout";
 import axios from "axios";
 import { useAuth } from "../../context/auth";
 import moment from "moment";
+import toast from "react-hot-toast";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -14,6 +15,7 @@ const Orders = () => {
       setOrders(data);
     } catch (error) {
       console.log(error);
+      toast.error("Something went wrong while fetching orders");
     }
   };
 

@@ -1,30 +1,36 @@
 import "@testing-library/jest-dom";
-
 import React from "react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { render, waitFor, screen } from "@testing-library/react";
 import Orders from "../../../pages/user/Orders";
-import { useAuth } from "../../../context/auth";
+import { AuthProvider } from "../../../context/auth";
 import { CartProvider } from "../../../context/cart";
 import { SearchProvider } from "../../../context/search";
+import PrivateRoute from "../../../components/Routes/Private";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 jest.mock("axios");
+jest.spyOn(toast, "success");
+jest.spyOn(toast, "error");
 
-jest.mock("../../../hooks/useCategory", () => ({
-  __esModule: true,
-  default: jest.fn(() => [[], jest.fn()]),
-}));
-
-jest.mock("../../../context/auth", () => ({
-  useAuth: jest.fn(),
-}));
+Object.defineProperty(window, "matchMedia", {
+  value: jest.fn(() => {
+    return {
+      matches: true,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    };
+  }),
+});
 
 const Providers = ({ children }) => {
   return (
-    <CartProvider>
-      <SearchProvider>{children}</SearchProvider>
-    </CartProvider>
+    <AuthProvider>
+      <CartProvider>
+        <SearchProvider>{children}</SearchProvider>
+      </CartProvider>
+    </AuthProvider>
   );
 };
 
@@ -59,14 +65,31 @@ describe("Orders Integration Tests", () => {
         },
       ],
     },
+    {
+      _id: "2",
+      status: "Shipped",
+      buyer: { name: "John Doe" },
+      createAt: "2023-09-01T00:00:00.000Z",
+      payment: { success: true },
+      products: [
+        {
+          _id: "p3",
+          name: "Product 3",
+          description: "Description of Product 3",
+          price: 100,
+        },
+      ],
+    },
   ];
 
   const setup = () => {
     return render(
       <Providers>
-        <MemoryRouter initialEntries={["/user/orders"]}>
+        <MemoryRouter initialEntries={["/dashboard/user/orders"]}>
           <Routes>
-            <Route path="/user/orders" element={<Orders />} />
+            <Route path="/dashboard" element={<PrivateRoute />}>
+              <Route path="user/orders" element={<Orders />} />
+            </Route>
           </Routes>
         </MemoryRouter>
       </Providers>
@@ -75,16 +98,21 @@ describe("Orders Integration Tests", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    useAuth.mockReturnValue(
-      [
-        {
-          token: mockToken,
-          user: mockUser,
-        },
-      ],
-      jest.fn()
+    localStorage.setItem(
+      "auth",
+      JSON.stringify({ user: mockUser, token: mockToken })
     );
-    axios.get.mockResolvedValue({ data: mockOrders });
+
+    axios.get.mockImplementation((url) => {
+      switch (url) {
+        case "/api/v1/auth/user-auth": // mock auth check in private route
+          return Promise.resolve({ data: { ok: true } });
+        case "/api/v1/order/orders":
+          return Promise.resolve({ data: mockOrders });
+        default:
+          return Promise.reject(new Error("Internal Server Error"));
+      }
+    });
   });
 
   it("should render the right layout", async () => {
@@ -105,47 +133,63 @@ describe("Orders Integration Tests", () => {
     });
   });
 
-  it("should fetch and display orders if user is authenticated", async () => {
+  it("should fetch and display orders and their products if user is authenticated", async () => {
     setup();
 
     await waitFor(() => {
       expect(screen.getByText("All Orders")).toBeInTheDocument();
     });
 
+    // order 1
     await waitFor(() => {
       expect(screen.getByText("Processing")).toBeInTheDocument();
     });
+    expect(screen.getByText("Product 1")).toBeInTheDocument();
+    expect(screen.getByText("Product 2")).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.getByText("Product 1")).toBeInTheDocument();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText("Product 2")).toBeInTheDocument();
-    });
+    // order 2
+    expect(screen.getByText("Shipped")).toBeInTheDocument();
+    expect(screen.getByText("Product 3")).toBeInTheDocument();
   });
 
-  it("should not fetch and display orders if user is not authenticated", async () => {
-    useAuth.mockReturnValue([null, jest.fn()]);
+  it("sould redirect user to login page if user is not signed in", async () => {
+    axios.get.mockImplementation((url) => {
+      if (url === "/api/v1/auth/user-auth") {
+        return Promise.resolve({ data: { ok: false } }); // simulate user not signed in in privateroute
+      }
+    });
 
     setup();
-    expect(axios.get).not.toHaveBeenCalled();
+
     expect(screen.queryByText("Product 1")).not.toBeInTheDocument();
     expect(screen.queryByText("Product 2")).not.toBeInTheDocument();
+    expect(screen.queryByText("Shipped")).not.toBeInTheDocument();
+    expect(screen.queryByText("Product 3")).not.toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", { name: /redirecting to you in/i })
+      ).toBeInTheDocument();
+    });
   });
 
-  it("should handle failed fetch of orders", async () => {
-    axios.get.mockRejectedValue(new Error("Internal Server Error"));
+  it("should handle gracefully when error is thrown when calling API", async () => {
+    axios.get.mockImplementation((url) => {
+      if (url === "/api/v1/auth/user-auth") {
+        return Promise.resolve({ data: { ok: true } });
+      }
+      if (url === "/api/v1/order/orders") {
+        return Promise.reject(new Error("Internal Server Error")); // simulate error when fetching
+      }
+      return Promise.reject(new Error("Unexpected URL"));
+    });
+
     setup();
 
     await waitFor(() => {
-      expect(screen.getByText("All Orders")).toBeInTheDocument();
-    });
-    await waitFor(() => {
-      expect(screen.queryByText("Product 1")).not.toBeInTheDocument();
-    });
-    await waitFor(() => {
-      expect(screen.queryByText("Product 2")).not.toBeInTheDocument();
+      expect(toast.error).toHaveBeenCalledWith(
+        "Something went wrong while fetching orders"
+      );
     });
   });
 });
