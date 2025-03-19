@@ -68,6 +68,7 @@ describe("Category Controller", () => {
 
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
         message: "Name is required",
       });
     });
@@ -102,7 +103,7 @@ describe("Category Controller", () => {
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: true,
-        messsage: "Category Updated Successfully",
+        message: "Category Updated Successfully",
         category: categoryData,
       });
     });
@@ -235,7 +236,7 @@ describe("Category Controller", () => {
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: true,
-        message: "Categry Deleted Successfully",
+        message: "Category Deleted Successfully",
       });
     });
 
