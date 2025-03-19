@@ -193,12 +193,15 @@ describe("Profile Integration Tests", () => {
     );
   });
 
-  it("should handle error in update field", async () => {
-    // simulate error field in json response
+  it("should handle failure in update field", async () => {
     axios.put.mockImplementation(() => {
       return Promise.reject({
         response: {
-          data: { error: "Password should be minimum 6 characters long" },
+          status: 400,
+          data: {
+            message: "Password should be minimum 6 characters long",
+            success: false,
+          },
         },
       });
     });

@@ -154,7 +154,7 @@ describe("Auth Controller Integration Tests", () => {
       });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toBe("Password should be minimum 6 characters long");
+    expect(res.body.message).toBe("Password should be minimum 6 characters long");
   });
 
   test("PUT /api/v1/auth/profile should return 500 when user does not exist", async () => {

@@ -33,23 +33,20 @@ const Profile = () => {
         phone,
         address,
       });
-      // if (data?.error) {
-      //   toast.error(data?.error);
-      // } else {
+
       setAuth({ ...auth, user: data?.updatedUser, email: email });
       let ls = localStorage.getItem("auth");
       ls = JSON.parse(ls);
       ls.user = data.updatedUser;
       localStorage.setItem("auth", JSON.stringify(ls));
       toast.success("Profile Updated Successfully");
-      // }
     } catch (error) {
       console.log(error);
-      if (error?.response?.data?.error) {
-        // catches validation errors
-        return toast.error(error?.response?.data?.error);
+      if (error.response?.data?.message) {
+        toast.error(error.response?.data?.message);
+      } else {
+        toast.error("Something went wrong");
       }
-      toast.error("Something went wrong");
     }
   };
 

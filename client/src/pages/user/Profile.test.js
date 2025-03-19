@@ -203,7 +203,7 @@ describe("Profile Page", () => {
 
     // mock axios
     axios.put.mockRejectedValueOnce({
-      response: { data: { error: "Error updating user" } },
+      response: { data: { message: "Error updating user", success: false } },
     });
 
     renderWithRouter(<Profile />);
