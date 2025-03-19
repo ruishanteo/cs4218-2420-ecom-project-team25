@@ -152,7 +152,7 @@ describe("Orders Integration Tests", () => {
     expect(screen.getByText("Product 3")).toBeInTheDocument();
   });
 
-  it("sould redirect user to login page if user is not signed in", async () => {
+  it("should redirect user to login page if user is not signed in", async () => {
     axios.get.mockImplementation((url) => {
       if (url === "/api/v1/auth/user-auth") {
         return Promise.resolve({ data: { ok: false } }); // simulate user not signed in in privateroute
