@@ -10,6 +10,10 @@ import userModel from "../../models/userModel";
 
 jest.mock("../../config/db.js", () => jest.fn());
 
+// Focus for integration tests for authMiddleware:
+// can the request go through?
+// done by status code assertions
+
 describe("authMiddleware Integration Tests", () => {
   let mongoServer;
   let admin;
@@ -135,6 +139,15 @@ describe("authMiddleware Integration Tests", () => {
       expect(response.status).toBe(200);
     });
 
+    // test 401 error of requiresignin
+    test("admin-auth: should deny access for invalid token", async () => {
+      const response = await request(app)
+        .get(`${BASE_URL}/admin-auth`)
+        .set("Authorization", "invalid-admin");
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe("Error in requireSignIn middleware");
+    });
+
     test("admin-auth: should deny access for missing token", async () => {
       const response = await request(app).get(`${BASE_URL}/admin-auth`);
       expect(response.status).toBe(401);
@@ -237,6 +250,15 @@ describe("authMiddleware Integration Tests", () => {
   // PRODUCT ROUTES
   describe("with productRoutes", () => {
     const BASE_URL = "/api/v1/product";
+
+    // test jwt token in requiresignin
+    test("create-product: should deny access for invalid token", async () => {
+      const response = await request(app)
+        .post(`${BASE_URL}/create-product`)
+        .set("Authorization", "invalid");
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe("Error in requireSignIn middleware");
+    });
 
     // CREATE-PRODUCT
     test("create-product: should deny access for a missing token", async () => {
@@ -348,6 +370,15 @@ describe("authMiddleware Integration Tests", () => {
   // CATEGORY ROUTES
   describe("with categoryRoutes", () => {
     const BASE_URL = "/api/v1/category";
+
+    // test jwt token in requiresignin
+    test("create-product: should deny access for invalid token", async () => {
+      const response = await request(app)
+        .post(`${BASE_URL}/create-category`)
+        .set("Authorization", "invalid");
+      expect(response.status).toBe(401);
+      expect(response.body.message).toBe("Error in requireSignIn middleware");
+    });
 
     // CREATE-CATEGORY
     test("create-category: should deny access for a missing token", async () => {
