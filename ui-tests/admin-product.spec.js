@@ -14,14 +14,21 @@ import { ADMIN_USER, USER, CATEGORIES, PRODUCTS } from "../config/seed/seedDb";
  *
  * - Test for not deleting product if cancel is clicked
  *
- * - Test for error messages when required fields are empty
- * - Test for error messages when category is empty
- * - Test for error messages when name is empty
- * - Test for error messages when description is empty
- * - Test for error messages when price is empty
- * - Test for error messages when quantity is empty
- * - Test for error messages when shipping is empty
+ * - Test for not creating product if required fields are empty
+ * - Test for not creating product if category is empty
+ * - Test for not creating product if name is empty
+ * - Test for not creating product if description is empty
+ * - Test for not creating product if price is empty
+ * - Test for not creating product if quantity is empty
+ * - Test for not creating product if shipping is empty
  * - Test for creating product with no photo
+ * - Test for not updating product if required fields are empty
+ * - Test for not updating product if name is empty
+ * - Test for not updating product if description is empty
+ * - Test for not updating product if price is empty
+ * - Test for not updating product if quantity is empty
+ * - Test for redirect to login page if user is not signed in
+ * - Test for redirect to home page if user is not admin
  */
 
 const PRODUCT = {
@@ -105,6 +112,56 @@ async function fillInProductDetails(
   }
 }
 
+async function updateProductDetails(
+  page,
+  { name, description, price, quantity, photo }
+) {
+  const productNameField = await page.getByRole("textbox", {
+    name: "Product name",
+  });
+  await productNameField.click();
+  if (name) {
+    await productNameField.fill(name);
+  } else {
+    await productNameField.clear();
+  }
+
+  const productDescriptionField = await page.getByRole("textbox", {
+    name: "Product description",
+  });
+  await productDescriptionField.click();
+  if (description) {
+    await productDescriptionField.fill(description);
+  } else {
+    await productDescriptionField.clear();
+  }
+
+  const productPriceField = await page.getByRole("spinbutton", {
+    name: "Product price",
+  });
+  await productPriceField.click();
+  if (price) {
+    await productPriceField.fill(price);
+  } else {
+    await productPriceField.clear();
+  }
+
+  const productQuantityField = await page.getByRole("spinbutton", {
+    name: "Product quantity",
+  });
+  await productQuantityField.click();
+  if (quantity) {
+    await productQuantityField.fill(quantity);
+  } else {
+    await productQuantityField.clear();
+  }
+
+  if (photo) {
+    await page.getByText("Upload Photo").click();
+    await page.getByText("Upload Photo").setInputFiles(photo);
+  }
+}
+
 test.beforeEach(
   "Login as admin and navigate to admin dashboard",
   async ({ page }) => {
@@ -152,22 +209,7 @@ test("should create, update and delete product successfully", async ({
   await verifyProductDetails(page, PRODUCT);
 
   // Update the product
-  await page.getByRole("textbox", { name: "Product name" }).click();
-  await page
-    .getByRole("textbox", { name: "Product name" })
-    .fill(UPDATED_PRODUCT.name);
-  await page.getByRole("textbox", { name: "Product description" }).click();
-  await page
-    .getByRole("textbox", { name: "Product description" })
-    .fill(UPDATED_PRODUCT.description);
-  await page.getByRole("spinbutton", { name: "Product price" }).click();
-  await page
-    .getByRole("spinbutton", { name: "Product price" })
-    .fill(UPDATED_PRODUCT.price);
-  await page.getByRole("spinbutton", { name: "Product quantity" }).click();
-  await page
-    .getByRole("spinbutton", { name: "Product quantity" })
-    .fill(UPDATED_PRODUCT.quantity);
+  await updateProductDetails(page, UPDATED_PRODUCT);
   await page.getByText(PRODUCT.shipping).click();
   await page.getByText(UPDATED_PRODUCT.shipping).click();
   await page.getByTitle(PRODUCT.category).click();
@@ -327,6 +369,21 @@ test("should not create product if shipping is empty", async ({ page }) => {
   await expect(page.getByText("Something went wrong in")).toBeVisible();
 });
 
+test("should not create product if photo is too large", async ({ page }) => {
+  // Go to create product page
+  await page.getByRole("link", { name: "Create Product" }).click();
+
+  // Fill in the product details with a large photo
+  await fillInProductDetails(page, {
+    ...PRODUCT,
+    photo: "ui-tests/resources/book-large.jpg",
+  });
+  await page.getByRole("button", { name: "CREATE PRODUCT" }).click();
+
+  // Verify the error message
+  await expect(page.getByText("Something went wrong in")).toBeVisible();
+});
+
 test("should still create product with no photo", async ({ page }) => {
   // Go to create product page
   await page.getByRole("link", { name: "Create Product" }).click();
@@ -360,6 +417,106 @@ test("should still create product with no photo", async ({ page }) => {
   await expect(
     page.getByRole("link", { name: PRODUCT.name })
   ).not.toBeVisible();
+});
+
+test("should not update product if required fields are empty", async ({
+  page,
+}) => {
+  // Go to the product page and verify the product has been created
+  await page.getByRole("link", { name: "Products" }).click();
+  await page.getByRole("link", { name: PRODUCTS[0].name }).click();
+
+  // Update the product
+  await updateProductDetails(page, {
+    name: "",
+    description: "",
+    price: "",
+    quantity: "",
+  });
+  await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+
+  // Verify the error message
+  await expect(page.getByText("Something went wrong in")).toBeVisible();
+});
+
+test("should not update product if name is empty", async ({ page }) => {
+  // Go to the product page and verify the product has been created
+  await page.getByRole("link", { name: "Products" }).click();
+  await page.getByRole("link", { name: PRODUCTS[0].name }).click();
+
+  // Update the product
+  await updateProductDetails(page, {
+    ...UPDATED_PRODUCT,
+    name: "",
+  });
+  await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+
+  // Verify the error message
+  await expect(page.getByText("Something went wrong in")).toBeVisible();
+});
+
+test("should not update product if description is empty", async ({ page }) => {
+  // Go to the product page and verify the product has been created
+  await page.getByRole("link", { name: "Products" }).click();
+  await page.getByRole("link", { name: PRODUCTS[0].name }).click();
+
+  // Update the product
+  await updateProductDetails(page, {
+    ...UPDATED_PRODUCT,
+    description: "",
+  });
+  await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+
+  // Verify the error message
+  await expect(page.getByText("Something went wrong in")).toBeVisible();
+});
+
+test("should not update product if price is empty", async ({ page }) => {
+  // Go to the product page and verify the product has been created
+  await page.getByRole("link", { name: "Products" }).click();
+  await page.getByRole("link", { name: PRODUCTS[0].name }).click();
+
+  // Update the product
+  await updateProductDetails(page, {
+    ...UPDATED_PRODUCT,
+    price: "",
+  });
+  await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+
+  // Verify the error message
+  await expect(page.getByText("Something went wrong in")).toBeVisible();
+});
+
+test("should not update product if quantity is empty", async ({ page }) => {
+  // Go to the product page and verify the product has been created
+  await page.getByRole("link", { name: "Products" }).click();
+  await page.getByRole("link", { name: PRODUCTS[0].name }).click();
+
+  // Update the product
+  await updateProductDetails(page, {
+    ...UPDATED_PRODUCT,
+    quantity: "",
+  });
+  await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+
+  // Verify the error message
+  await expect(page.getByText("Something went wrong in")).toBeVisible();
+});
+
+test("should not update product if photo is too large", async ({ page }) => {
+  // Go to the product page and verify the product has been created
+  await page.getByRole("link", { name: "Products" }).click();
+  await page.getByRole("link", { name: PRODUCTS[0].name }).click();
+
+  // Update the product
+  await updateProductDetails(page, {
+    ...UPDATED_PRODUCT,
+    photo: "ui-tests/resources/book-large.jpg",
+  });
+  await page.getByRole("button", { name: "UPDATE PRODUCT" }).click();
+
+  // Verify the error message
+  await expect(page.getByText("Something went wrong in")).toBeVisible();
 });
 
 test("should redirect to login page if user is not signed in", async ({
