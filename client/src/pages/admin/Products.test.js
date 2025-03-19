@@ -54,7 +54,9 @@ describe("Products Component", () => {
         expect(
           screen.getByRole("heading", { name: product.name })
         ).toBeInTheDocument();
-        expect(screen.getByText(product.description)).toBeInTheDocument();
+        expect(
+          screen.getByText(`${product.description.substring(0, 60)}...`)
+        ).toBeInTheDocument();
       });
     });
     expect(axios.get).toHaveBeenCalledWith(API_URLS.GET_PRODUCTS);
