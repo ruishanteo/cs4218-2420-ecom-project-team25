@@ -134,38 +134,3 @@ test("should redirect to login if not an admin", async ({ page }) => {
     });
 });
 
-// test("should allow scrolling in the user list", async ({ page }) => {
-
-//     const newUsers = [];
-//     for (let i = 0; i < 20; i++) {
-//         newUsers.push({
-//             name: `User ${i}`,
-//             email: `user${i}@email.com`,
-//             password: await hashPassword("password"),
-//             phone: "1234567890",
-//             address: "Address",
-//             answer: "Answer",
-//         });
-//     }
-//     await userModel.insertMany(newUsers);
-
-//     console.log("Users created");
-
-
-//     // navigate to users page
-//     await page.getByRole("button", { name: ADMIN_USER.name }).click();
-//     await page.getByRole("link", { name: "Dashboard" }).click();
-//     await page.getByRole("link", {name: "Users"}).click();
-
-//     // check if the table has 20 rows
-//     const table = await page.waitForSelector("table");
-//     const users = await page.$$("tbody tr");
-//     expect(users.length).toBe(20);
-
-//     // check if scrollable
-//     await table.scrollTo({ top: 500 });
-
-//     // Ensure scrolling happened
-//     const scrollPosition = await table.evaluate((el) => el.scrollTop);
-//     expect(scrollPosition).toBeGreaterThan(0);
-// });
