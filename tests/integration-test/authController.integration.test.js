@@ -157,7 +157,7 @@ describe("Auth Controller Integration Tests", () => {
     expect(res.body.message).toBe("Password should be minimum 6 characters long");
   });
 
-  test("PUT /api/v1/auth/profile should return 500 when user does not exist", async () => {
+  test("PUT /api/v1/auth/profile should return 404 when user does not exist", async () => {
     // Create token with non-existent user ID
     const nonExistentId = new mongoose.Types.ObjectId();
     const invalidToken = JWT.sign(
@@ -173,6 +173,6 @@ describe("Auth Controller Integration Tests", () => {
       .set("Authorization", invalidToken)
       .send({ name: "Updated User" });
 
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(404);
   });
 });
