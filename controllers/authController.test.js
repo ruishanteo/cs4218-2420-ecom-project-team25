@@ -532,11 +532,10 @@ describe("Auth Controller Tests", () => {
       
           await updateProfileController(req, res);
       
-          expect(res.status).toHaveBeenCalledWith(500);
+          expect(res.status).toHaveBeenCalledWith(404);
           expect(res.send).toHaveBeenCalledWith({
             success: false,
-            message: "Error While Updating Profile",
-            error: expect.anything(),
+            message: "User not found",
           });
         });
       
