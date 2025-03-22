@@ -25,24 +25,6 @@ test.beforeEach(
     async ({ page }) => {
       await page.goto(".");
       await page.getByRole("link", { name: "Login" }).click();
-      // await page.getByRole("textbox", { name: "Enter Your Email" }).click();
-      // await page
-      //   .getByRole("textbox", { name: "Enter Your Email" })
-      //   .fill(USER.email);
-      // await page.getByRole("textbox", { name: "Enter Your Password" }).click();
-      // await page
-      //   .getByRole("textbox", { name: "Enter Your Password" })
-      //   .fill(USER.password);
-      // await page.getByRole("button", { name: "LOGIN" }).click();
-  
-      // await page.getByRole("button", { name: USER.name }).click();
-      // await page.getByRole("link", { name: "Dashboard" }).click();
-      // await page.getByRole("link", { name: "Profile" }).click();
-  
-      // // wait for the login success message to disappear
-      // await page.waitForSelector("text=Logged in successfully", {
-      //   state: "hidden",
-      // });
     }
   );
 
