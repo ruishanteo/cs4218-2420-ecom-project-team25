@@ -70,8 +70,9 @@ const HomePage = () => {
     try {
       setLoading(true);
       const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setLoading(false);
       setProducts([...products, ...data?.products]);
+      await filterProduct();
+      setLoading(false);
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -90,12 +91,14 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    if (!checked.length || !radio.length) getAllProducts();
-  }, [checked.length, radio.length]);
-
-  useEffect(() => {
-    if (checked.length || radio.length) filterProduct();
-  }, [checked, radio]);
+    if (!checked.length && !radio.length) {
+      // get all the products if no filter is applied
+      getAllProducts();
+    } else if (checked.length || radio.length) {
+      // filter the products if either filters are applied
+      filterProduct();
+    }
+  }, [checked.length, checked, radio.length, radio]);
 
   //get filterd product
   const filterProduct = async () => {
