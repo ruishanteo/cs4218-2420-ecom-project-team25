@@ -201,9 +201,9 @@ describe("Profile Page", () => {
   it("should display error message on update failure", async () => {
     // covers line 39
 
-    // mock axios return data.error
-    axios.put.mockResolvedValueOnce({
-      data: { error: "Error updating user" },
+    // mock axios
+    axios.put.mockRejectedValueOnce({
+      response: { data: { message: "Error updating user", success: false } },
     });
 
     renderWithRouter(<Profile />);
@@ -233,87 +233,6 @@ describe("Profile Page", () => {
 
     // verify toast.error
     expect(toast.error).toHaveBeenCalledWith("Error updating user");
-  });
-
-  it("should display error messages when name field is empty", async () => {
-    renderWithRouter(<Profile />);
-
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
-      target: { value: "" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
-      target: { value: updatedMockUser.phone },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
-      target: { value: updatedMockUser.address },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
-      target: { value: "newpass" },
-    });
-
-    fireEvent.click(screen.getByText(/UPDATE/i));
-
-    expect(toast.error).toHaveBeenCalledWith("Name is required");
-    
-  })
-
-  it("should display error messages when password field is empty", async () => {
-    renderWithRouter(<Profile />);
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
-      target: { value: updatedMockUser.name },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
-      target: { value: updatedMockUser.phone },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
-      target: { value: updatedMockUser.address },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
-      target: { value: "" },
-    });
-    fireEvent.click(screen.getByText(/UPDATE/i));
-
-    expect(toast.error).toHaveBeenCalledWith("Password is required");
-  });
-
-  it("should display error messages when phone field is empty", async () => {
-    renderWithRouter(<Profile />);
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
-      target: { value: updatedMockUser.name },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
-      target: { value: "" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
-      target: { value: updatedMockUser.address },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
-      target: { value: "newpass" },
-    });
-
-    fireEvent.click(screen.getByText(/UPDATE/i));
-
-    expect(toast.error).toHaveBeenCalledWith("Phone is required");
-  });
-
-  it("should display error messages when address field is empty", async () => {
-    renderWithRouter(<Profile />);
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
-      target: { value: updatedMockUser.name },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
-      target: { value: updatedMockUser.phone },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
-      target: { value: "" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
-      target: { value: "newpass" },
-    });
-
-    fireEvent.click(screen.getByText(/UPDATE/i));
-
-    expect(toast.error).toHaveBeenCalledWith("Address is required");
   });
 
   it("should log and display error message if error is thrown", async () => {

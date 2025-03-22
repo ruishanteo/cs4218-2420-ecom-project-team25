@@ -11,6 +11,22 @@ import userModel from "../../models/userModel";
 
 jest.mock("../../config/db.js", () => jest.fn());
 
+jest.mock("braintree", () => ({
+  BraintreeGateway: jest.fn(() => {
+    return {
+      clientToken: {
+        generate: jest.fn(),
+      },
+      transaction: {
+        sale: jest.fn(),
+      },
+    };
+  }),
+  Environment: {
+    Sandbox: "sandbox",
+  },
+}));
+
 describe("Order API Integration Tests", () => {
   let mongoServer;
   let admin;
@@ -82,13 +98,28 @@ describe("Order API Integration Tests", () => {
       photo: "sample.jpg",
     });
 
-    // Create sample order
+    // Create sample order by admin
     await orderModel.create({
       buyer: admin._id,
       products: [product._id],
       status: "Processing",
       payment: {
         id: "123",
+        status: "paid",
+        amount: 100,
+      },
+    });
+    // Add a delay to ensure timestamps are different
+    // so that we can ensure first order is created by admin before second order by user
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Create sample order by user
+    await orderModel.create({
+      buyer: user._id,
+      products: [product._id],
+      status: "Shipped",
+      payment: {
+        id: "100",
         status: "paid",
         amount: 100,
       },
@@ -103,6 +134,81 @@ describe("Order API Integration Tests", () => {
     await userModel.deleteMany();
   });
 
+  // GET ORDERS CONTROLLER
+  test("GET /api/v1/order/orders should fetch own user order when user is signed in", async () => {
+    const res = await request(app)
+      .get("/api/v1/order/orders")
+      .set("Authorization", userToken);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toBeInstanceOf(Array);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].buyer.name).toBe("Sample User");
+  });
+
+  test("GET /api/v1/order/orders should fetch own admin order when admin is signed in", async () => {
+    const res = await request(app)
+      .get("/api/v1/order/orders")
+      .set("Authorization", adminToken);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toBeInstanceOf(Array);
+    expect(res.body.length).toBe(1);
+    expect(res.body[0].buyer.name).toBe("Admin User");
+  });
+
+  test("GET /api/v1/order/orders should return 401 when user is not signed in", async () => {
+    const res = await request(app).get("/api/v1/order/orders");
+    expect(res.statusCode).toBe(401);
+    expect(res.body.message).toBe("Error in requireSignIn middleware");
+  });
+
+  test("GET /api/v1/order/orders should return 401 when admin is not signed in", async () => {
+    const res = await request(app).get("/api/v1/order/orders");
+    expect(res.statusCode).toBe(401);
+    expect(res.body.message).toBe("Error in requireSignIn middleware");
+  });
+
+  test("GET /api/v1/order/orders should return 500 when database error occurs", async () => {
+    jest.spyOn(orderModel, "find").mockResolvedValueOnce(null);
+
+    const res = await request(app)
+      .get("/api/v1/order/orders")
+      .set("Authorization", userToken);
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.message).toBe("Error While Getting Orders");
+
+    orderModel.find.mockRestore();
+  });
+
+  test("GET /api/v1/order/orders should return empty array when user has no orders", async () => {
+    // create new user without orders
+    const newUserNoOrder = await userModel.create({
+      name: "User Without Orders",
+      email: "nouser@email.com",
+      password: "password",
+      phone: "1234567890",
+      address: "1234th St, San Francisco, CA",
+      answer: "John",
+      role: 0, // user
+    });
+    const newUserNoOrderToken = JWT.sign(
+      { _id: newUserNoOrder._id },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    const res = await request(app)
+      .get("/api/v1/order/orders")
+      .set("Authorization", newUserNoOrderToken);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toBeInstanceOf(Array);
+    expect(res.body.length).toBe(0);
+  });
+
+  // GET ALL ORDERS CONTROLLER
   test("GET /api/v1/order/all-orders should fetch all orders when user is signed in and is admin", async () => {
     const res = await request(app)
       .get("/api/v1/order/all-orders")
@@ -110,8 +216,9 @@ describe("Order API Integration Tests", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toBeInstanceOf(Array);
-    expect(res.body.length).toBe(1);
-    expect(res.body[0].buyer.name).toBe("Admin User");
+    expect(res.body.length).toBe(2);
+    expect(res.body[0].buyer.name).toBe("Sample User");
+    expect(res.body[1].buyer.name).toBe("Admin User");
   });
 
   test("GET /api/v1/order/all-orders should return 401 when user is not signed in", async () => {
@@ -130,6 +237,20 @@ describe("Order API Integration Tests", () => {
     expect(res.body.message).toBe("UnAuthorized Access");
   });
 
+  test("GET /api/v1/order/all-orders should return 500 when database error occurs", async () => {
+    jest.spyOn(orderModel, "find").mockResolvedValueOnce(null);
+
+    const res = await request(app)
+      .get("/api/v1/order/all-orders")
+      .set("Authorization", adminToken);
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.message).toBe("Error While Getting Orders");
+
+    orderModel.find.mockRestore();
+  });
+
+  // ORDER STATUS CONTROLLER
   test("PUT /api/v1/order/order-status/:orderId should update order status when user is signed in and is admin", async () => {
     const order = await orderModel.findOne();
     const res = await request(app)
@@ -160,19 +281,6 @@ describe("Order API Integration Tests", () => {
 
     expect(res.statusCode).toBe(401);
     expect(res.body.message).toBe("UnAuthorized Access");
-  });
-
-  test("GET /api/v1/order/all-orders should return 500 when database error occurs", async () => {
-    jest.spyOn(orderModel, "find").mockResolvedValueOnce(null);
-
-    const res = await request(app)
-      .get("/api/v1/order/all-orders")
-      .set("Authorization", adminToken);
-
-    expect(res.statusCode).toBe(500);
-    expect(res.body.message).toBe("Error While Getting Orders");
-
-    orderModel.find.mockRestore();
   });
 
   test("PUT /api/v1/order/order-status/:orderId should return 500 for invalid order ID", async () => {
