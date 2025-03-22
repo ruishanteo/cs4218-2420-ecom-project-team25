@@ -84,6 +84,13 @@ test("should display user profile details", async ({ page }) => {
   ).toHaveValue(USER.address);
 });
 
+// 1. Fill in the updated user details
+// 2. Click the update button
+// 3. Wait for the success message to appear
+// 4. Logout the user
+// 5. Login with the updated details
+// 6. Navigate to the profile page
+// 7. Check if the details are updated
 test("should update profile successfully", async ({ page }) => {
   await fillInUserDetails(page, UPDATED_USER);
   await page.getByRole("button", { name: "UPDATE" }).click();
