@@ -1,0 +1,80 @@
+- main:
+  - heading "Dashboard" [level=4]
+  - link "Profile"
+  - link "Orders"
+  - heading "All Orders" [level=1]
+  - table:
+    - rowgroup:
+      - row "# Status Buyer Date Payment Quantity":
+        - columnheader "#"
+        - columnheader "Status"
+        - columnheader "Buyer"
+        - columnheader "Date"
+        - columnheader "Payment"
+        - columnheader "Quantity"
+    - rowgroup:
+      - row "1 Not Processed User a few seconds ago Success 4":
+        - cell "1"
+        - cell "Not Processed"
+        - cell "User"
+        - cell "a few seconds ago"
+        - cell "Success"
+        - cell "4"
+  - img "Novel"
+  - paragraph: Novel
+  - paragraph: A novel is a relatively long w...
+  - paragraph: "/Price : \\d+/"
+  - img "Laptop"
+  - paragraph: Laptop
+  - paragraph: A laptop is a small, portable ...
+  - paragraph: "/Price : \\d+/"
+  - img "Phone"
+  - paragraph: Phone
+  - paragraph: A telephone, or phone, is a te...
+  - paragraph: "/Price : \\d+/"
+  - img "Tshirt"
+  - paragraph: Tshirt
+  - paragraph: A T-shirt, or tee shirt, is a ...
+  - paragraph: "/Price : \\d+/"
+  - table:
+    - rowgroup:
+      - row "# Status Buyer Date Payment Quantity":
+        - columnheader "#"
+        - columnheader "Status"
+        - columnheader "Buyer"
+        - columnheader "Date"
+        - columnheader "Payment"
+        - columnheader "Quantity"
+    - rowgroup:
+      - row "2 Not Processed User a few seconds ago Success 1":
+        - cell "2"
+        - cell "Not Processed"
+        - cell "User"
+        - cell "a few seconds ago"
+        - cell "Success"
+        - cell "1"
+  - img "Phone"
+  - paragraph: Phone
+  - paragraph: A telephone, or phone, is a te...
+  - paragraph: "/Price : \\d+/"
+  - table:
+    - rowgroup:
+      - row "# Status Buyer Date Payment Quantity":
+        - columnheader "#"
+        - columnheader "Status"
+        - columnheader "Buyer"
+        - columnheader "Date"
+        - columnheader "Payment"
+        - columnheader "Quantity"
+    - rowgroup:
+      - row "3 Not Processed User a few seconds ago Failed 1":
+        - cell "3"
+        - cell "Not Processed"
+        - cell "User"
+        - cell "a few seconds ago"
+        - cell "Failed"
+        - cell "1"
+  - img "Phone"
+  - paragraph: Phone
+  - paragraph: A telephone, or phone, is a te...
+  - paragraph: "/Price : \\d+/"
