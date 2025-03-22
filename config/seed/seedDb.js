@@ -3,6 +3,7 @@ import slugify from "slugify";
 import categoryModel from "../../models/categoryModel.js";
 import userModel from "../../models/userModel.js";
 import productModel from "../../models/productModel.js";
+import orderModel from "../../models/orderModel.js";
 import { hashPassword } from "../../helpers/authHelper.js";
 
 const ADMIN_USERS = [
