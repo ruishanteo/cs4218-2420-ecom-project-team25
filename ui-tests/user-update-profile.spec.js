@@ -35,6 +35,12 @@ async function fillInUserDetails(page, { name, phone, address, password }) {
   }
 }
 
+async function resetUserDetails(page) {
+  await fillInUserDetails(page, USER);
+  await page.getByRole("button", { name: "UPDATE" }).click();
+  await expect(page.getByText("Profile Updated Successfully")).toBeVisible();
+}
+
 // 1. Login as user and navigate to the profile page
 // 2. Wait for the login success message to disappear
 test.beforeEach(
@@ -78,9 +84,18 @@ test("should display user profile details", async ({ page }) => {
   ).toHaveValue(USER.address);
 });
 
+// 1. Fill in the updated user details
+// 2. Click the update button
+// 3. Wait for the success message to appear
+// 4. Logout the user
+// 5. Login with the updated details
+// 6. Navigate to the profile page
+// 7. Check if the details are updated
 test("should update profile successfully", async ({ page }) => {
   await fillInUserDetails(page, UPDATED_USER);
   await page.getByRole("button", { name: "UPDATE" }).click();
+
+  await expect(page.getByText("Profile updated successfully")).toBeVisible();
 
   await expect(
     page.getByRole("textbox", { name: "Enter Your Name" })
@@ -139,6 +154,9 @@ test("should update profile successfully", async ({ page }) => {
   await expect(
     page.getByRole("textbox", { name: "Enter Your Address" })
   ).toHaveValue(UPDATED_USER.address);
+
+  // reset user details
+  resetUserDetails(page);
 });
 
 test("should show error message for password less than 6 chars", async ({
