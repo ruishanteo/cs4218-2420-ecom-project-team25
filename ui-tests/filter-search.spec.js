@@ -309,3 +309,78 @@ test('reset filter should work', async ({ page }) => {
       .nth(3)
   ).toBeVisible();
 });
+
+test('searching for existing products should return results', async ({
+  page,
+}) => {
+  await page.getByRole('searchbox', { name: 'Search' }).click();
+  await page.getByRole('searchbox', { name: 'Search' }).fill('Phone');
+  await page.getByRole('button', { name: 'Search' }).click();
+
+  await expect(
+    page
+      .locator('div')
+      .filter({
+        hasText:
+          /^PhoneA telephone, or phone, is a te\.\.\. \$ 500More DetailsADD TO CART$/,
+      })
+      .nth(1)
+  ).toBeVisible();
+
+  await expect(page.getByRole('img', { name: 'Phone' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Phone' })).toBeVisible();
+  await expect(page.getByText('A telephone, or phone, is a')).toBeVisible();
+  await expect(page.getByText('$')).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'More Details' })
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'ADD TO CART' })).toBeVisible();
+});
+
+test('searching for non-existing products should return no results', async ({
+  page,
+}) => {
+  await page.getByRole('searchbox', { name: 'Search' }).click();
+  await page
+    .getByRole('searchbox', { name: 'Search' })
+    .fill('Something that does not exist at all');
+  await page.getByRole('button', { name: 'Search' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'No Products Found' })
+  ).toBeVisible();
+});
+
+test('searching for blank name should not do anything', async ({ page }) => {
+  await page.getByRole('searchbox', { name: 'Search' }).click();
+  await page.getByRole('button', { name: 'Search' }).click();
+
+  await expect(
+    page
+      .getByRole('main')
+      .locator('div')
+      .filter({ hasText: 'Laptop$1,000.00A laptop is a' })
+      .nth(3)
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('main')
+      .locator('div')
+      .filter({ hasText: 'Novel$10.00A novel is a' })
+      .nth(3)
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('main')
+      .locator('div')
+      .filter({ hasText: 'Phone$500.00A telephone, or' })
+      .nth(3)
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('main')
+      .locator('div')
+      .filter({ hasText: 'Tshirt$20.00A T-shirt, or tee' })
+      .nth(3)
+  ).toBeVisible();
+});
