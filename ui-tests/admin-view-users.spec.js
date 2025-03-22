@@ -106,7 +106,7 @@ test("should add new user and display new user in users page", async ({ page, br
 test("should redirect to login page if not logged in", async ({ page }) => {
     // logout 
     await page.getByRole("button", { name: ADMIN_USER.name }).click();
-    await page.getByRole("button", { name: "Logout" }).click();
+    await page.getByRole("link", { name: "Logout" }).click();
 
     // navigate to users page
     await page.goto("/dashboard/admin/users");
