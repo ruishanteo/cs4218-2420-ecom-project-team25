@@ -4,7 +4,12 @@ import connectDB, { DB_STRINGS } from "./db";
 import { seedDb } from "./seed/seedDb";
 import { execSync } from "child_process";
 
-jest.mock("mongoose");
+jest.mock("mongoose", () => ({
+  ...jest.requireActual("mongoose"),
+  model: jest.fn(),
+  save: jest.fn(),
+  connect: jest.fn(),
+}));
 jest.mock("mongodb-memory-server", () => ({
   MongoMemoryServer: {
     create: jest.fn(),

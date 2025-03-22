@@ -442,8 +442,10 @@ describe("Auth Controller Tests", () => {
       
           await updateProfileController(req, res);
       
-          expect(res.json).toHaveBeenCalledWith({
-            error: "Password is required and 6 character long",
+          expect(res.status).toHaveBeenCalledWith(400);
+          expect(res.send).toHaveBeenCalledWith({
+            success: false,
+            message: "Password should be minimum 6 characters long",
           });
         });
       
@@ -530,11 +532,10 @@ describe("Auth Controller Tests", () => {
       
           await updateProfileController(req, res);
       
-          expect(res.status).toHaveBeenCalledWith(400);
+          expect(res.status).toHaveBeenCalledWith(404);
           expect(res.send).toHaveBeenCalledWith({
             success: false,
-            message: "Error While Updating Profile",
-            error: expect.anything(),
+            message: "User not found",
           });
         });
       
@@ -549,7 +550,7 @@ describe("Auth Controller Tests", () => {
       
           await updateProfileController(req, res);
       
-          expect(res.status).toHaveBeenCalledWith(400);
+          expect(res.status).toHaveBeenCalledWith(500);
           expect(res.send).toHaveBeenCalledWith({
             success: false,
             message: "Error While Updating Profile",

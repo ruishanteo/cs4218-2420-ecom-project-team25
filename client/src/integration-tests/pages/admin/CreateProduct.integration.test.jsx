@@ -17,6 +17,9 @@ import CreateProduct, {
   CREATE_PRODUCT_STRINGS,
   API_URLS,
 } from "../../../pages/admin/CreateProduct";
+import AdminRoute, {
+  API_URLS as ADMIN_ROUTE_API_URLS,
+} from "../../../components/Routes/AdminRoute";
 import { AuthProvider } from "../../../context/auth";
 import { CartProvider } from "../../../context/cart";
 import { SearchProvider } from "../../../context/search";
@@ -75,51 +78,72 @@ function getCaseInsensitiveRegex(text) {
 }
 
 describe("CreateProduct Integration Tests", () => {
+  const user = userEvent.setup();
   const mockCategories = [{ _id: "1", name: "Electronics" }];
+  const mockAuthData = { user: { name: "Admin User" }, token: "valid-token" };
   const MockProducts = () => (
     <div data-testid="mock-products-page">Products Page</div>
   );
-  const user = userEvent.setup();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock axios.get for useCategory hook
-    axios.get.mockResolvedValue({
-      data: { success: true, category: mockCategories },
-    });
   });
 
-  const setup = async () => {
+  const setAuthInLocalStorage = (authData) => {
+    localStorage.setItem("auth", JSON.stringify(authData));
+  };
+
+  const clearAuthFromLocalStorage = () => {
+    localStorage.removeItem("auth");
+  };
+
+  const setup = async (waitForCategories = true) => {
     render(
       <Providers>
         <MemoryRouter initialEntries={["/dashboard/admin/create-product"]}>
           <Routes>
-            <Route
-              path="/dashboard/admin/create-product"
-              element={<CreateProduct />}
-            />
-            <Route
-              path="/dashboard/admin/products"
-              element={<MockProducts />}
-            />
+            <Route path="/dashboard" element={<AdminRoute />}>
+              <Route path="admin/create-product" element={<CreateProduct />} />
+              <Route path="admin/products" element={<MockProducts />} />
+            </Route>
           </Routes>
         </MemoryRouter>
       </Providers>
     );
 
-    await waitFor(() => {
-      const categorySelect = screen.getByRole("combobox", {
-        name: getCaseInsensitiveRegex(
-          CREATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION
-        ),
+    if (waitForCategories) {
+      await waitFor(() => {
+        const categorySelect = screen.getByRole("combobox", {
+          name: getCaseInsensitiveRegex(
+            CREATE_PRODUCT_STRINGS.SELECT_CATEGORY_ACTION
+          ),
+        });
+        expect(within(categorySelect).getAllByRole("option")).toHaveLength(
+          mockCategories.length
+        );
       });
-      expect(within(categorySelect).getAllByRole("option")).toHaveLength(
-        mockCategories.length
-      );
+    }
+  };
+
+  const mockAxiosGet = ({ failAuthCheck = false } = {}) => {
+    axios.get.mockImplementation((url) => {
+      switch (url) {
+        case ADMIN_ROUTE_API_URLS.CHECK_ADMIN_AUTH:
+          return failAuthCheck
+            ? Promise.resolve({ data: { ok: false } })
+            : Promise.resolve({ data: { ok: true } });
+        default:
+          return Promise.resolve({
+            data: { success: true, category: mockCategories },
+          });
+      }
     });
   };
 
   it("should load categories and display them in dropdown", async () => {
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
+
     await setup();
 
     const categorySelect = await screen.findByRole("combobox", {
@@ -137,6 +161,8 @@ describe("CreateProduct Integration Tests", () => {
   it("should fill and submit the form, calling API and showing success toast", async () => {
     axios.post.mockResolvedValue({ data: { success: true } });
     URL.createObjectURL = jest.fn(() => "mock-url");
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
 
     await setup();
 
@@ -229,6 +255,8 @@ describe("CreateProduct Integration Tests", () => {
 
   it("should show error toast if API responds with unsuccessful creation", async () => {
     axios.post.mockResolvedValue({ data: { success: false } });
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
 
     await setup();
 
@@ -249,6 +277,8 @@ describe("CreateProduct Integration Tests", () => {
 
   it("should show error toast if API call fails", async () => {
     axios.post.mockRejectedValue(new Error("Network error"));
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
 
     await setup();
 
@@ -269,6 +299,8 @@ describe("CreateProduct Integration Tests", () => {
 
   it("should display image preview after uploading photo", async () => {
     URL.createObjectURL = jest.fn(() => "mock-url");
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
 
     await setup();
 
@@ -290,6 +322,9 @@ describe("CreateProduct Integration Tests", () => {
   });
 
   it("should show error toast if required fields are empty", async () => {
+    setAuthInLocalStorage(mockAuthData);
+    mockAxiosGet();
+
     await setup();
 
     fireEvent.click(
@@ -305,5 +340,40 @@ describe("CreateProduct Integration Tests", () => {
         CREATE_PRODUCT_STRINGS.CREATE_PRODUCT_ERROR
       );
     });
+  });
+
+  it("should redirect to login if user is not signed in", async () => {
+    clearAuthFromLocalStorage();
+    mockAxiosGet();
+
+    await act(async () => {
+      await setup(false); // Skip waiting for categories
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("heading", {
+          name: getCaseInsensitiveRegex("redirecting to you in"),
+        })
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("should redirect to login if user is not admin", async () => {
+    setAuthInLocalStorage({ user: { name: "User" }, token: "valid-token" });
+    mockAxiosGet({ failAuthCheck: true }); // Simulate failed auth check
+
+    await act(async () => {
+      await setup(false); // Skip waiting for categories
+    });
+
+    await waitFor(() => {
+      expect(axios.get).toHaveBeenCalledWith(
+        ADMIN_ROUTE_API_URLS.CHECK_ADMIN_AUTH
+      );
+    });
+    expect(
+      screen.getByRole("heading", { name: /redirecting to you in/i })
+    ).toBeInTheDocument();
   });
 });

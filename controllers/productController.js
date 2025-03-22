@@ -369,6 +369,12 @@ export const brainTreePaymentController = async (req, res) => {
     cart.map((i) => {
       total += i.price;
     });
+    
+    // fix bug with empty cart
+    if (cart.length === 0) {
+      return res.status(500).send({ error: 'Cart is empty' });
+    }
+
     let newTransaction = gateway.transaction.sale(
       {
         amount: total,
@@ -377,9 +383,10 @@ export const brainTreePaymentController = async (req, res) => {
           submitForSettlement: true,
         },
       },
-      function (error, result) {
+      async function (error, result) {
         if (result) {
-          const order = new orderModel({
+          // wait for order to be saved
+          const order = await new orderModel({
             products: cart,
             payment: result,
             buyer: req.user._id,

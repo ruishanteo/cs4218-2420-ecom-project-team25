@@ -181,7 +181,6 @@ describe("Profile Page", () => {
     await waitFor(() => {
       expect(axios.put).toHaveBeenCalledWith("/api/v1/auth/profile", {
         name: updatedMockUser.name,
-        email: mockUser.email,
         phone: updatedMockUser.phone,
         address: updatedMockUser.address,
         password: "newpass",
@@ -202,9 +201,9 @@ describe("Profile Page", () => {
   it("should display error message on update failure", async () => {
     // covers line 39
 
-    // mock axios return data.error
-    axios.put.mockResolvedValueOnce({
-      data: { error: "Error updating user" },
+    // mock axios
+    axios.put.mockRejectedValueOnce({
+      response: { data: { message: "Error updating user", success: false } },
     });
 
     renderWithRouter(<Profile />);
@@ -228,7 +227,6 @@ describe("Profile Page", () => {
         name: updatedMockUser.name,
         phone: updatedMockUser.phone,
         address: updatedMockUser.address,
-        email: mockUser.email,
         password: "newpass",
       });
     });
@@ -268,7 +266,6 @@ describe("Profile Page", () => {
         name: updatedMockUser.name,
         phone: updatedMockUser.phone,
         address: updatedMockUser.address,
-        email: mockUser.email,
         password: "newpass",
       });
     });

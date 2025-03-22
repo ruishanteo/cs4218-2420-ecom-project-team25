@@ -29,26 +29,27 @@ const Profile = () => {
     try {
       const { data } = await axios.put("/api/v1/auth/profile", {
         name,
-        email,
         password,
         phone,
         address,
       });
-      if (data?.error) {
-        toast.error(data?.error);
-      } else {
-        setAuth({ ...auth, user: data?.updatedUser });
-        let ls = localStorage.getItem("auth");
-        ls = JSON.parse(ls);
-        ls.user = data.updatedUser;
-        localStorage.setItem("auth", JSON.stringify(ls));
-        toast.success("Profile Updated Successfully");
-      }
+
+      setAuth({ ...auth, user: data?.updatedUser, email: email });
+      let ls = localStorage.getItem("auth");
+      ls = JSON.parse(ls);
+      ls.user = data.updatedUser;
+      localStorage.setItem("auth", JSON.stringify(ls));
+      toast.success("Profile Updated Successfully");
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong");
+      if (error.response?.data?.message) {
+        toast.error(error.response?.data?.message);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
+
   return (
     <Layout title={"Your Profile"}>
       <div className="container-fluid mt-3 mb-3 p-3">

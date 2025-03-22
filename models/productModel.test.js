@@ -1,5 +1,4 @@
 import productModel from './productModel';
-import { describe } from 'node:test';
 
 const mockingoose = require('mockingoose');
 

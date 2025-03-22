@@ -47,16 +47,16 @@ describe("Category Controller", () => {
       });
     });
 
-    it("should return an error if the category already exists", async () => {
+    it("should return an error if category to add already exists", async () => {
       mockReq.body = { name: "Existing Category" };
 
       categoryModel.findOne.mockResolvedValue({ name: "Existing Category" });
 
       await createCategoryController(mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.send).toHaveBeenCalledWith({
-        success: true,
+        success: false,
         message: "Category Already Exists",
       });
     });
@@ -68,6 +68,7 @@ describe("Category Controller", () => {
 
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
         message: "Name is required",
       });
     });
@@ -102,7 +103,7 @@ describe("Category Controller", () => {
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: true,
-        messsage: "Category Updated Successfully",
+        message: "Category Updated Successfully",
         category: categoryData,
       });
     });
@@ -123,6 +124,20 @@ describe("Category Controller", () => {
         success: false,
         error: expect.any(Error),
         message: "Error while updating category",
+      });
+    });
+
+    it("should return an error if edited category already exists", async () => {
+      mockReq.body = { name: "Existing Category" };
+
+      categoryModel.findOne.mockResolvedValue({ name: "Existing Category" });
+
+      await updateCategoryController(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Category Already Exists",
       });
     });
   });
@@ -221,7 +236,7 @@ describe("Category Controller", () => {
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.send).toHaveBeenCalledWith({
         success: true,
-        message: "Categry Deleted Successfully",
+        message: "Category Deleted Successfully",
       });
     });
 
