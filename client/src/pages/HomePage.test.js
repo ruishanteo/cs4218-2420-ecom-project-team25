@@ -87,6 +87,15 @@ describe('Home Page', () => {
     },
   };
 
+  const mockedTotalProducts = {
+    data: {
+      products: [
+        ...mockedProductsPageOne.data.products,
+        ...mockedProductsPageTwo.data.products,
+      ],
+    },
+  };
+
   const mockedCategories = {
     data: {
       success: true,
@@ -144,7 +153,7 @@ describe('Home Page', () => {
     axios.post.mockImplementation((url) => {
       switch (url) {
         case '/api/v1/product/product-filters':
-          return Promise.resolve(mockedProductsPageOne);
+          return Promise.resolve(mockedTotalProducts);
         default:
           return Promise.reject(new Error('URL not found'));
       }
