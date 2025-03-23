@@ -33,10 +33,7 @@ describe("Braintree Payment Controllers Integration Tests", () => {
 		const mongoUri = mongod.getUri();
 
 		// Connect to the in-memory database
-		await mongoose.connect(mongoUri, {
-			useNewUrlParser: true,
-			useUnifiedTopology: true,
-		});
+		await mongoose.connect(mongoUri);
 
 		// Create a test user
 		testUser = await User.create({
@@ -85,7 +82,7 @@ describe("Braintree Payment Controllers Integration Tests", () => {
 
 		// Get the braintree gateway instance from the constructor mock
 		braintreeInstance = gateway;
-	});
+	}, 20000);
 
 	// Clean up after all tests
 	afterAll(async () => {
