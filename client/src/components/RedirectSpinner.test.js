@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, act } from "@testing-library/react";
 import { MemoryRouter, useNavigate, useLocation } from "react-router-dom";
-import Spinner from "./Spinner";
+import RedirectSpinner from "./RedirectSpinner";
 import "@testing-library/jest-dom";
 
 // Mocking the useNavigate and useLocation hooks from react-router-dom
@@ -25,11 +25,11 @@ describe("Spinner Component", () => {
   it("should render countdown and spinner", () => {
     render(
       <MemoryRouter>
-        <Spinner />
+        <RedirectSpinner />
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/redirecting to you in/i)).toBeInTheDocument();
+    expect(screen.getByText(/redirecting you in/i)).toBeInTheDocument();
     expect(screen.getByText(/3/)).toBeInTheDocument();
     expect(screen.getByText(/second/i)).toBeInTheDocument();
     expect(screen.getByRole("status")).toBeInTheDocument();
@@ -40,7 +40,7 @@ describe("Spinner Component", () => {
 
     render(
       <MemoryRouter>
-        <Spinner />
+        <RedirectSpinner />
       </MemoryRouter>
     );
 
@@ -50,7 +50,7 @@ describe("Spinner Component", () => {
     });
 
     // After 1 second, count should be 2
-    expect(screen.getByText(/redirecting to you in/i)).toBeInTheDocument();
+    expect(screen.getByText(/redirecting you in/i)).toBeInTheDocument();
     expect(screen.getByText(/2/)).toBeInTheDocument();
     expect(screen.getByText(/second/i)).toBeInTheDocument();
 
@@ -60,7 +60,7 @@ describe("Spinner Component", () => {
     });
 
     // After 2 seconds, count should be 1
-    expect(screen.getByText(/redirecting to you in/i)).toBeInTheDocument();
+    expect(screen.getByText(/redirecting you in/i)).toBeInTheDocument();
     expect(screen.getByText(/1/)).toBeInTheDocument();
     expect(screen.getByText(/second/i)).toBeInTheDocument();
 
@@ -70,7 +70,7 @@ describe("Spinner Component", () => {
     });
 
     // After 3 seconds, count should be 0
-    expect(screen.getByText(/redirecting to you in/i)).toBeInTheDocument();
+    expect(screen.getByText(/redirecting you in/i)).toBeInTheDocument();
     expect(screen.getByText(/0/)).toBeInTheDocument();
     expect(screen.getByText(/second/i)).toBeInTheDocument();
   });
@@ -80,7 +80,7 @@ describe("Spinner Component", () => {
 
     render(
       <MemoryRouter>
-        <Spinner />
+        <RedirectSpinner />
       </MemoryRouter>
     );
 
@@ -100,7 +100,7 @@ describe("Spinner Component", () => {
 
     render(
       <MemoryRouter>
-        <Spinner path="register" />
+        <RedirectSpinner path="register" />
       </MemoryRouter>
     );
 

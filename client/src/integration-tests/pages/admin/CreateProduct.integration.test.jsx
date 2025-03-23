@@ -353,7 +353,7 @@ describe("CreateProduct Integration Tests", () => {
     await waitFor(() => {
       expect(
         screen.getByRole("heading", {
-          name: getCaseInsensitiveRegex("redirecting to you in"),
+          name: getCaseInsensitiveRegex("redirecting you in"),
         })
       ).toBeInTheDocument();
     });
@@ -373,7 +373,7 @@ describe("CreateProduct Integration Tests", () => {
       );
     });
     expect(
-      screen.getByRole("heading", { name: /redirecting to you in/i })
+      screen.getByRole("heading", { name: /redirecting you in/i })
     ).toBeInTheDocument();
   });
 });
