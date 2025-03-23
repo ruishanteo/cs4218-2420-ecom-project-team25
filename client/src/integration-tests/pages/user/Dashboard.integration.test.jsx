@@ -2,11 +2,11 @@ import "@testing-library/jest-dom";
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
-import Dashboard from "./Dashboard";
-import { AuthProvider } from "../../context/auth";
-import { CartProvider } from "../../context/cart";
-import { SearchProvider } from "../../context/search";
-import Layout from "../../components/Layout";
+import Dashboard from "../../../pages/user/Dashboard";
+import { AuthProvider } from "../../../context/auth";
+import { CartProvider } from "../../../context/cart";
+import { SearchProvider } from "../../../context/search";
+import Layout from "../../../components/Layout";
 import axios from "axios";
 
 
