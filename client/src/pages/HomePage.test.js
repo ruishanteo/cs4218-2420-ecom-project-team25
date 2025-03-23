@@ -498,5 +498,7 @@ describe("HomePage Component", () => {
     // find and click the first more details button
     const moreDetailsButtons = screen.getAllByText(/more details/i);
     fireEvent.click(moreDetailsButtons[0]);
+
+    expect(mockedNavigate).toHaveBeenCalledWith(`/product/${mockedProducts[0].slug}`);
   });
 });
