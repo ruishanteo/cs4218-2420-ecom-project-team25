@@ -302,12 +302,12 @@ describe("AdminOrders Integration Tests", () => {
     setup();
 
     await waitFor(() => {
-      expect(axios.get).toHaveBeenCalledWith(
-        ADMIN_ROUTE_API_URLS.CHECK_ADMIN_AUTH
-      );
+      expect(
+        screen.getByRole("heading", { name: /redirecting to you in/i })
+      ).toBeInTheDocument();
     });
-    expect(
-      screen.getByRole("heading", { name: /redirecting to you in/i })
-    ).toBeInTheDocument();
+    expect(axios.get).toHaveBeenCalledWith(
+      ADMIN_ROUTE_API_URLS.CHECK_ADMIN_AUTH
+    );
   });
 });
