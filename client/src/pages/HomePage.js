@@ -7,76 +7,78 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Layout from "./../components/Layout";
 import { AiOutlineReload } from "react-icons/ai";
+import Spinner from "../components/Spinner";
 import "../styles/Homepages.css";
+import useCategory from "../hooks/useCategory";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [cart, setCart] = useCart();
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [checked, setChecked] = useState([]);
-  const [radio, setRadio] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
 
-  //get all cat
-  const getAllCategory = async () => {
-    try {
-      const { data } = await axios.get("/api/v1/category/get-category");
-      if (data?.success) {
-        setCategories(data?.category);
+  const [productLoading, setProductLoading] = useState(true);
+  const [loadMoreLoading, setLoadMoreLoading] = useState(false);
+  const [categories] = useCategory();
+
+  useEffect(() => {
+    let isValid = true;
+    const getAllProducts = async () => {
+      try {
+        setProductLoading(true);
+        const { data } = await axios.get("/api/v1/product/product-list", {
+          params: {
+            page: 1,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            categories: checked.join(","),
+          },
+        });
+        if (!isValid) {
+          return;
+        }
+
+        setProducts(data.products);
+        setHasMore(data.hasMore);
+      } catch (error) {
+        console.log(error);
+        toast.error("Error in getting products");
       }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+      setProductLoading(false);
+    };
 
-  useEffect(() => {
-    getAllCategory();
-    getTotal();
-  }, []);
+    getAllProducts();
 
-  //get products
-  const getAllProducts = async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
-      setLoading(false);
-      setProducts(data.products);
-    } catch (error) {
-      setLoading(false);
-      console.log(error);
-    }
-  };
-
-  //getTOtal COunt
-  const getTotal = async () => {
-    try {
-      const { data } = await axios.get("/api/v1/product/product-count");
-      setTotal(data?.total);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    if (page === 1) return;
-    loadMore();
-  }, [page]);
+    return () => {
+      isValid = false;
+    };
+  }, [minPrice, maxPrice, checked]);
 
   //load more
   const loadMore = async () => {
     try {
-      setLoading(true);
-      const { data } = await axios.get(`/api/v1/product/product-list/${page}`);
+      setLoadMoreLoading(true);
+      const { data } = await axios.get("/api/v1/product/product-list", {
+        params: {
+          page: page + 1,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          categories: checked.join(","),
+        },
+      });
+
       setProducts([...products, ...data?.products]);
-      await filterProduct();
-      setLoading(false);
+      setHasMore(data.hasMore);
+      setPage(page + 1);
     } catch (error) {
+      toast.error("Error in getting more products");
       console.log(error);
-      setLoading(false);
     }
+    setLoadMoreLoading(false);
   };
 
   // filter by cat
@@ -88,29 +90,7 @@ const HomePage = () => {
       all = all.filter((c) => c !== id);
     }
     setChecked(all);
-  };
-
-  useEffect(() => {
-    if (!checked.length && !radio.length) {
-      // get all the products if no filter is applied
-      getAllProducts();
-    } else if (checked.length || radio.length) {
-      // filter the products if either filters are applied
-      filterProduct();
-    }
-  }, [checked.length, checked, radio.length, radio]);
-
-  //get filterd product
-  const filterProduct = async () => {
-    try {
-      const { data } = await axios.post("/api/v1/product/product-filters", {
-        checked,
-        radio,
-      });
-      setProducts(data?.products);
-    } catch (error) {
-      console.log(error);
-    }
+    setPage(1);
   };
 
   return (
@@ -140,7 +120,13 @@ const HomePage = () => {
           {/* price filter */}
           <h4 className="text-center mt-4">Filter By Price</h4>
           <div className="d-flex flex-column">
-            <Radio.Group onChange={(e) => setRadio(e.target.value)}>
+            <Radio.Group
+              onChange={(e) => {
+                setMinPrice(e.target.value[0]);
+                setMaxPrice(e.target.value[1]);
+                setPage(1);
+              }}
+            >
               {Prices?.map((p) => (
                 <div key={p._id}>
                   <Radio value={p.array}>{p.name}</Radio>
@@ -159,64 +145,72 @@ const HomePage = () => {
         </div>
         <div className="col-md-9 ">
           <h1 className="text-center">All Products</h1>
-          <div className="d-flex flex-wrap">
-            {products?.map((p) => (
-              <div className="card m-2" key={p._id}>
-                <img
-                  src={`/api/v1/product/product-photo/${p._id}`}
-                  className="card-img-top"
-                  alt={p.name}
-                />
-                <div className="card-body">
-                  <div className="card-name-price">
-                    <h5 className="card-title">{p.name}</h5>
-                    <h5 className="card-title card-price">
-                      {p.price.toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      })}
-                    </h5>
-                  </div>
-                  <p className="card-text ">
-                    {p.description.substring(0, 60)}...
-                  </p>
-                  <div className="card-name-price">
-                    <button
-                      className="btn btn-info ms-1"
-                      data-testid={`${p._id}-more-details-btn`}
-                      onClick={() => navigate(`/product/${p.slug}`)}
-                    >
-                      More Details
-                    </button>
-                    <button
-                      className="btn btn-dark ms-1"
-                      data-testid={`${p._id}-add-to-cart-btn`}
-                      onClick={() => {
-                        setCart([...cart, p]);
-                        localStorage.setItem(
-                          "cart",
-                          JSON.stringify([...cart, p])
-                        );
-                        toast.success("Item Added to cart");
-                      }}
-                    >
-                      ADD TO CART
-                    </button>
+
+          {productLoading ? (
+            <Spinner />
+          ) : products?.length === 0 ? (
+            <p>No Product Found</p>
+          ) : (
+            <div className="d-flex flex-wrap">
+              {products?.map((p) => (
+                <div className="card m-2" key={p._id}>
+                  <img
+                    src={`/api/v1/product/product-photo/${p._id}`}
+                    className="card-img-top"
+                    alt={p.name}
+                  />
+                  <div className="card-body">
+                    <div className="card-name-price">
+                      <h5 className="card-title">{p.name}</h5>
+                      <h5 className="card-title card-price">
+                        {p.price.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        })}
+                      </h5>
+                    </div>
+                    <p className="card-text ">
+                      {p.description.substring(0, 60)}...
+                    </p>
+                    <div className="card-name-price">
+                      <button
+                        className="btn btn-info ms-1"
+                        data-testid={`${p._id}-more-details-btn`}
+                        onClick={() => navigate(`/product/${p.slug}`)}
+                      >
+                        More Details
+                      </button>
+                      <button
+                        className="btn btn-dark ms-1"
+                        data-testid={`${p._id}-add-to-cart-btn`}
+                        onClick={() => {
+                          setCart([...cart, p]);
+                          localStorage.setItem(
+                            "cart",
+                            JSON.stringify([...cart, p])
+                          );
+                          toast.success("Item Added to cart");
+                        }}
+                      >
+                        ADD TO CART
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+
           <div className="m-2 p-3">
-            {products && products.length < total && (
+            {products && hasMore && (
               <button
                 className="btn loadmore"
                 onClick={(e) => {
                   e.preventDefault();
-                  setPage(page + 1);
+                  loadMore();
                 }}
               >
-                {loading ? (
+                {loadMoreLoading ? (
                   "Loading ..."
                 ) : (
                   <>

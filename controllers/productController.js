@@ -254,23 +254,43 @@ export const productCountController = async (req, res) => {
 // product list base on page
 export const productListController = async (req, res) => {
   try {
+    let { page = 1, minPrice, maxPrice, categories } = req.query;
     const perPage = 6;
-    const page = req.params.page ? req.params.page : 1;
+    const skip = (page - 1) * perPage;
+
+    let filter = {};
+
+    minPrice = Number(minPrice);
+    maxPrice = Number(maxPrice);
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = minPrice;
+      if (maxPrice) filter.price.$lte = maxPrice;
+    }
+
+    if (categories) {
+      filter.category = categories.split(",");
+    }
+
     const products = await productModel
-      .find({})
-      .select('-photo')
-      .skip((page - 1) * perPage)
-      .limit(perPage)
-      .sort({ createdAt: -1 });
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .select("-photo")
+      .skip(skip)
+      .limit(perPage);
+
+    const totalProducts = await productModel.countDocuments(filter);
+
     res.status(200).send({
       success: true,
-      products,
+      products: products,
+      hasMore: totalProducts > page * perPage,
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
       success: false,
-      message: 'Error in per page control',
+      message: "Error in pagination control",
       error,
     });
   }
