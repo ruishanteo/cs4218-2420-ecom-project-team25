@@ -334,7 +334,7 @@ describe("Register Component", () => {
 				// Verify error toast was shown with the API's error message
                 expect(toast.error).toHaveBeenCalledWith("Email already exists");	
 
-				// Verify we remain on register page
+				// Verify remain on register page
 				expect(screen.getByText("REGISTER FORM")).toBeInTheDocument();
 			});
 		});
@@ -380,7 +380,7 @@ describe("Register Component", () => {
 				// Verify generic error toast was shown
                 expect(toast.error).toHaveBeenCalledWith("Something went wrong");	
                 
-				// Verify we remain on register page
+				// Verify remain on register page
 				expect(screen.getByText("REGISTER FORM")).toBeInTheDocument();
 			});
 		});
