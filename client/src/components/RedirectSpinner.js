@@ -23,7 +23,7 @@ const RedirectSpinner = ({ path = "login" }) => {
         data-testid="redirect-spinner"
         style={{ height: "100vh" }}
       >
-        <h1 className="Text-center">redirecting to you in {count} second </h1>
+        <h1 className="Text-center">redirecting you in {count} second </h1>
         <div className="spinner-border" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>

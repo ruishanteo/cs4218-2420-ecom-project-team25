@@ -29,7 +29,7 @@ describe("Spinner Component", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText(/redirecting to you in/i)).toBeInTheDocument();
+    expect(screen.getByText(/redirecting you in/i)).toBeInTheDocument();
     expect(screen.getByText(/3/)).toBeInTheDocument();
     expect(screen.getByText(/second/i)).toBeInTheDocument();
     expect(screen.getByRole("status")).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe("Spinner Component", () => {
     });
 
     // After 1 second, count should be 2
-    expect(screen.getByText(/redirecting to you in/i)).toBeInTheDocument();
+    expect(screen.getByText(/redirecting you in/i)).toBeInTheDocument();
     expect(screen.getByText(/2/)).toBeInTheDocument();
     expect(screen.getByText(/second/i)).toBeInTheDocument();
 
@@ -60,7 +60,7 @@ describe("Spinner Component", () => {
     });
 
     // After 2 seconds, count should be 1
-    expect(screen.getByText(/redirecting to you in/i)).toBeInTheDocument();
+    expect(screen.getByText(/redirecting you in/i)).toBeInTheDocument();
     expect(screen.getByText(/1/)).toBeInTheDocument();
     expect(screen.getByText(/second/i)).toBeInTheDocument();
 
@@ -70,7 +70,7 @@ describe("Spinner Component", () => {
     });
 
     // After 3 seconds, count should be 0
-    expect(screen.getByText(/redirecting to you in/i)).toBeInTheDocument();
+    expect(screen.getByText(/redirecting you in/i)).toBeInTheDocument();
     expect(screen.getByText(/0/)).toBeInTheDocument();
     expect(screen.getByText(/second/i)).toBeInTheDocument();
   });
