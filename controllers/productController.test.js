@@ -853,8 +853,8 @@ describe('productListController', () => {
       find: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),
       skip: jest.fn().mockReturnThis(),
-      limit: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockResolvedValue([mockedProductData]),
+      limit: jest.fn().mockResolvedValue([mockedProductData]),
+      sort: jest.fn().mockReturnThis(),
     };
   });
 
@@ -865,42 +865,110 @@ describe('productListController', () => {
   it('should list all products on a page with page specified', async () => {
     productModel.find.mockReturnValue(mockedProductQuery);
 
-    await productListController({ params: { page: 1 } }, response);
+    await productListController({ query: { page: 1 } }, response);
 
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.send).toHaveBeenCalledWith({
       success: true,
       products: [mockedProductData],
+      hasMore: false,
     });
   });
 
   it('should list all products on a page without page specified', async () => {
     productModel.find.mockReturnValue(mockedProductQuery);
 
-    await productListController({ params: {} }, response);
+    await productListController({ query: {} }, response);
 
     expect(response.status).toHaveBeenCalledWith(200);
     expect(response.send).toHaveBeenCalledWith({
       success: true,
       products: [mockedProductData],
+      hasMore: false,
     });
   });
 
   it('should error out when an error is thrown', async () => {
-    const error = new Error('Error in per page control');
+    const error = new Error('Error thrown');
 
     // modify the query object
-    mockedProductQuery.sort = jest.fn().mockRejectedValue(error);
+    mockedProductQuery.limit = jest.fn().mockRejectedValue(error);
 
     productModel.find.mockReturnValue(mockedProductQuery);
 
-    await productListController({ params: { page: 1 } }, response);
+    await productListController({ query: { page: 1 } }, response);
 
     expect(response.status).toHaveBeenCalledWith(500);
     expect(response.send).toHaveBeenCalledWith({
       success: false,
-      message: 'Error in per page control',
+      message: 'Error in pagination control',
       error: error,
+    });
+  });
+
+  it('should apply filters when filters are specified', async () => {
+    const filters = {
+      page: 2,
+      minPrice: 10,
+      maxPrice: 20,
+      categories: '1'
+    };
+
+    productModel.find.mockReturnValue(mockedProductQuery);
+
+    await productListController({ query: { ...filters } }, response);
+
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.send).toHaveBeenCalledWith({
+      success: true,
+      products: [mockedProductData],
+      hasMore: false,
+    });
+    expect(productModel.find).toHaveBeenCalledWith({
+      category: ['1'],
+      price: { $gte: 10, $lte: 20 },
+    });
+  });
+
+  it('should apply minPrice filter when minPrice is specified', async () => {
+    const filters = {
+      page: 2,
+      minPrice: 10,
+    };
+
+    productModel.find.mockReturnValue(mockedProductQuery);
+
+    await productListController({ query: { ...filters } }, response);
+
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.send).toHaveBeenCalledWith({
+      success: true,
+      products: [mockedProductData],
+      hasMore: false,
+    });
+    expect(productModel.find).toHaveBeenCalledWith({
+      price: { $gte: 10 },
+    });
+  });
+
+  it('should apply maxPrice filter when maxPrice is specified', async () => {
+    const filters = {
+      page: 2,
+      maxPrice: 20,
+    };
+
+    productModel.find.mockReturnValue(mockedProductQuery);
+
+    await productListController({ query: { ...filters } }, response);
+
+    expect(response.status).toHaveBeenCalledWith(200);
+    expect(response.send).toHaveBeenCalledWith({
+      success: true,
+      products: [mockedProductData],
+      hasMore: false,
+    });
+    expect(productModel.find).toHaveBeenCalledWith({
+      price: { $lte: 20 },
     });
   });
 });
