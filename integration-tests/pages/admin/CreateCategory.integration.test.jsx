@@ -308,7 +308,7 @@ describe("CreateCategory Integration Tests", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: /redirecting to you in/i })
+        screen.getByRole("heading", { name: /redirecting you in/i })
       ).toBeInTheDocument();
     });
   });
@@ -330,7 +330,7 @@ describe("CreateCategory Integration Tests", () => {
       );
     });
     expect(
-      screen.getByRole("heading", { name: /redirecting to you in/i })
+      screen.getByRole("heading", { name: /redirecting you in/i })
     ).toBeInTheDocument();
   });
 });

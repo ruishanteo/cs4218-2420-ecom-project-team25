@@ -26,7 +26,6 @@ const Profile = () => {
   // form function
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isValid()) return;
     try {
       const { data } = await axios.put("/api/v1/auth/profile", {
         name,
@@ -34,41 +33,22 @@ const Profile = () => {
         phone,
         address,
       });
-      if (data?.error) {
-        toast.error(data?.error);
-      } else {
-        setAuth({ ...auth, user: data?.updatedUser, email: email });
-        let ls = localStorage.getItem("auth");
-        ls = JSON.parse(ls);
-        ls.user = data.updatedUser;
-        localStorage.setItem("auth", JSON.stringify(ls));
-        toast.success("Profile Updated Successfully");
-      }
+
+      setAuth({ ...auth, user: data?.updatedUser, email: email });
+      let ls = localStorage.getItem("auth");
+      ls = JSON.parse(ls);
+      ls.user = data.updatedUser;
+      localStorage.setItem("auth", JSON.stringify(ls));
+      toast.success("Profile Updated Successfully");
     } catch (error) {
       console.log(error);
-      toast.error("Something went wrong");
+      if (error.response?.data?.message) {
+        toast.error(error.response?.data?.message);
+      } else {
+        toast.error("Something went wrong");
+      }
     }
   };
-
-  const isValid = () => {
-    if (!name) {
-      toast.error("Name is required");
-      return false;
-    }
-    if (!password) {
-      toast.error("Password is required");
-      return false;
-    }
-    if (!phone) {
-      toast.error("Phone is required");
-      return false;
-    }
-    if (!address) {
-      toast.error("Address is required");
-      return false;
-    }
-    return true;
-  }
 
   return (
     <Layout title={"Your Profile"}>
